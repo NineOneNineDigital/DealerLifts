@@ -171,11 +171,11 @@ export function CheckoutForm() {
         disabled={submitting}
         className="w-full px-6 py-3.5 bg-[#077BFF] text-white font-heading font-bold text-sm uppercase tracking-wider rounded-lg hover:bg-[#0565D4] transition-all duration-200 disabled:opacity-50 mt-6"
       >
-        {submitting ? "Redirecting to Payment..." : "Continue to Payment"}
+        {submitting ? "Placing Order..." : "Place Order"}
       </button>
 
       <p className="text-xs text-gray-400 text-center">
-        You&apos;ll be redirected to Stripe&apos;s secure payment page to complete your order.
+        Test mode — no payment will be charged.
       </p>
     </form>
   );
