@@ -1,6 +1,7 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useState } from "react";
+import { useQuery, useAction, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
   IconRefresh,
@@ -9,6 +10,8 @@ import {
   IconLoader2,
   IconMinus,
   IconAlertTriangle,
+  IconPackage,
+  IconBoxSeam,
 } from "@tabler/icons-react";
 
 type SyncRecord = {
@@ -36,19 +39,19 @@ function relativeTime(timestamp: number): string {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  if (status === "completed") {
+  if (status === "complete" || status === "completed") {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
         <IconCircleCheck size={12} />
-        Completed
+        Complete
       </span>
     );
   }
-  if (status === "in_progress") {
+  if (status === "running" || status === "in_progress") {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">
         <IconLoader2 size={12} className="animate-spin" />
-        In Progress
+        Running
       </span>
     );
   }
@@ -132,18 +135,127 @@ function SyncCard({ record }: { record: SyncRecord }) {
   );
 }
 
+function SyncActions() {
+  const syncStates = useQuery(api.syncAdmin.list);
+  const triggerProductSync = useAction(api.syncAdmin.triggerProductSync);
+  const triggerInventorySync = useAction(api.syncAdmin.triggerInventorySync);
+  const triggerPricingSync = useAction(api.syncAdmin.triggerPricingSync);
+  const cancelSync = useMutation(api.syncAdmin.cancelSync);
+  const [productSyncing, setProductSyncing] = useState(false);
+  const [inventorySyncing, setInventorySyncing] = useState(false);
+  const [pricingSyncing, setPricingSyncing] = useState(false);
+
+  const productState = syncStates?.find((s) => s.syncType === "products");
+  const isRunning = productState?.status === "running";
+
+  const handleProductSync = async () => {
+    setProductSyncing(true);
+    try {
+      await triggerProductSync();
+    } catch (err) {
+      console.error("Product sync failed:", err);
+    } finally {
+      setProductSyncing(false);
+    }
+  };
+
+  const handleCancelSync = async () => {
+    await cancelSync({ syncType: "products" });
+  };
+
+  const handleInventorySync = async () => {
+    setInventorySyncing(true);
+    try {
+      await triggerInventorySync();
+    } catch (err) {
+      console.error("Inventory sync failed:", err);
+    } finally {
+      setInventorySyncing(false);
+    }
+  };
+
+  const handlePricingSync = async () => {
+    setPricingSyncing(true);
+    try {
+      await triggerPricingSync();
+    } catch (err) {
+      console.error("Pricing sync failed:", err);
+    } finally {
+      setPricingSyncing(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-wrap gap-3">
+      {isRunning ? (
+        <button
+          type="button"
+          onClick={handleCancelSync}
+          className="flex items-center gap-2 rounded-lg bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600"
+        >
+          <IconCircleX size={16} />
+          Stop Sync
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={handleProductSync}
+          disabled={productSyncing}
+          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
+        >
+          {productSyncing ? (
+            <IconLoader2 size={16} className="animate-spin" />
+          ) : (
+            <IconPackage size={16} />
+          )}
+          {productSyncing ? "Starting..." : "Sync Products"}
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={handlePricingSync}
+        disabled={pricingSyncing}
+        className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+      >
+        {pricingSyncing ? (
+          <IconLoader2 size={16} className="animate-spin" />
+        ) : (
+          <IconPackage size={16} />
+        )}
+        {pricingSyncing ? "Starting..." : "Sync Pricing"}
+      </button>
+      <button
+        type="button"
+        onClick={handleInventorySync}
+        disabled={inventorySyncing}
+        className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+      >
+        {inventorySyncing ? (
+          <IconLoader2 size={16} className="animate-spin" />
+        ) : (
+          <IconBoxSeam size={16} />
+        )}
+        {inventorySyncing ? "Starting..." : "Sync Inventory"}
+      </button>
+    </div>
+  );
+}
+
 export default function SyncStatusPage() {
   const syncStates = useQuery(api.syncAdmin.list);
 
   return (
     <div className="mx-auto max-w-3xl p-8">
-      <div className="mb-8">
-        <h1 className="font-heading text-2xl font-bold text-gray-900">
-          Sync Status
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Monitor Turn14 data synchronization
-        </p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-heading text-2xl font-bold text-gray-900">
+            Sync Status
+          </h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Monitor Turn14 data synchronization
+          </p>
+        </div>
+        <SyncActions />
       </div>
 
       {syncStates === undefined ? (

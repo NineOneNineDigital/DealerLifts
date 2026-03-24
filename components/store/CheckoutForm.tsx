@@ -2,15 +2,13 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/hooks/useCart";
 import type { CheckoutFormData } from "@/lib/store/validators";
 
 export function CheckoutForm() {
   const [submitting, setSubmitting] = useState(false);
-  const createOrder = useMutation(api.orders.create);
+  const [error, setError] = useState<string | null>(null);
   const { sessionId } = useCart();
   const router = useRouter();
 
@@ -23,21 +21,38 @@ export function CheckoutForm() {
   const onSubmit = async (data: CheckoutFormData) => {
     if (!sessionId) return;
     setSubmitting(true);
+    setError(null);
+
     try {
-      const result = await createOrder({
-        sessionId,
-        contactName: data.name,
-        contactEmail: data.email,
-        contactPhone: data.phone || undefined,
-        shippingAddress: {
-          street: data.street,
-          city: data.city,
-          state: data.state,
-          zip: data.zip,
-        },
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          contactName: data.name,
+          contactEmail: data.email,
+          contactPhone: data.phone || undefined,
+          shippingAddress: {
+            street: data.street,
+            city: data.city,
+            state: data.state,
+            zip: data.zip,
+          },
+        }),
       });
-      router.push(`/store/checkout/confirmation?order=${result.orderNumber}`);
-    } catch {
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.error || "Checkout failed");
+      }
+
+      // Redirect to Stripe Checkout
+      if (result.url) {
+        router.push(result.url);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
       setSubmitting(false);
     }
   };
@@ -145,13 +160,23 @@ export function CheckoutForm() {
         </div>
       </div>
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
+      )}
+
       <button
         type="submit"
         disabled={submitting}
         className="w-full px-6 py-3.5 bg-[#077BFF] text-white font-heading font-bold text-sm uppercase tracking-wider rounded-lg hover:bg-[#0565D4] transition-all duration-200 disabled:opacity-50 mt-6"
       >
-        {submitting ? "Placing Order..." : "Place Order"}
+        {submitting ? "Redirecting to Payment..." : "Continue to Payment"}
       </button>
+
+      <p className="text-xs text-gray-400 text-center">
+        You&apos;ll be redirected to Stripe&apos;s secure payment page to complete your order.
+      </p>
     </form>
   );
 }

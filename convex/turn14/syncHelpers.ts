@@ -84,11 +84,49 @@ export const upsertProduct = internalMutation({
       .first();
 
     if (existing) {
-      await ctx.db.patch(existing._id, args);
+      // Don't overwrite prices with undefined
+      const patch = { ...args } as Record<string, unknown>;
+      if (args.mapPrice === undefined && existing.mapPrice !== undefined) {
+        delete patch.mapPrice;
+      }
+      if (args.retailPrice === undefined && existing.retailPrice !== undefined) {
+        delete patch.retailPrice;
+      }
+      if (args.costPrice === undefined && existing.costPrice !== undefined) {
+        delete patch.costPrice;
+      }
+      await ctx.db.patch(existing._id, patch);
       return existing._id;
     }
 
     return await ctx.db.insert("products", { ...args, isFeatured: false });
+  },
+});
+
+/** Patch only pricing fields on an existing product (won't create new products) */
+export const patchProductPricing = internalMutation({
+  args: {
+    turn14Id: v.number(),
+    mapPrice: v.optional(v.number()),
+    retailPrice: v.optional(v.number()),
+    costPrice: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("products")
+      .withIndex("by_turn14Id", (q) => q.eq("turn14Id", args.turn14Id))
+      .first();
+
+    if (!existing) return;
+
+    const patch: Record<string, number | undefined> = {};
+    if (args.mapPrice !== undefined) patch.mapPrice = args.mapPrice;
+    if (args.retailPrice !== undefined) patch.retailPrice = args.retailPrice;
+    if (args.costPrice !== undefined) patch.costPrice = args.costPrice;
+
+    if (Object.keys(patch).length > 0) {
+      await ctx.db.patch(existing._id, patch);
+    }
   },
 });
 

@@ -19,12 +19,25 @@ export default function ConfirmationPage() {
 function ConfirmationContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get("order") || "";
-  const order = useQuery(
+  const stripeSessionId = searchParams.get("stripe_session_id") || "";
+
+  // Support lookup by order number (legacy) or Stripe session ID (new flow)
+  const orderByNumber = useQuery(
     api.orders.getByOrderNumber,
     orderNumber ? { orderNumber } : "skip",
   );
+  const orderByStripe = useQuery(
+    api.orders.getByStripeSessionId,
+    stripeSessionId ? { stripeSessionId } : "skip",
+  );
 
-  if (!orderNumber) {
+  const order = orderByNumber || orderByStripe;
+  const isLoading =
+    (orderNumber && orderByNumber === undefined) ||
+    (stripeSessionId && orderByStripe === undefined);
+  const hasQuery = orderNumber || stripeSessionId;
+
+  if (!hasQuery) {
     return (
       <div className="pt-32 md:pt-40">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
@@ -37,7 +50,7 @@ function ConfirmationContent() {
     );
   }
 
-  if (order === undefined) {
+  if (isLoading) {
     return (
       <div className="pt-32 md:pt-40">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
@@ -47,7 +60,27 @@ function ConfirmationContent() {
     );
   }
 
-  if (order === null) {
+  // Webhook may not have fired yet — show a processing state
+  if (!order && stripeSessionId) {
+    return (
+      <div className="pt-32 md:pt-40">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+          <IconCircleCheck size={56} className="mx-auto text-green-500 mb-4" />
+          <h1 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+            Payment Received!
+          </h1>
+          <p className="text-gray-500 mb-2">
+            Your payment was successful. We&apos;re processing your order now.
+          </p>
+          <p className="text-gray-400 text-sm">
+            This page will update automatically once your order is confirmed.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!order) {
     return (
       <div className="pt-32 md:pt-40">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
@@ -81,7 +114,7 @@ function ConfirmationContent() {
             </div>
             <div>
               <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Status</p>
-              <p className="font-medium text-gray-900 capitalize">{order.status}</p>
+              <p className="font-medium text-gray-900 capitalize">{order.paymentStatus || order.status}</p>
             </div>
             <div>
               <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Email</p>

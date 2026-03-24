@@ -111,7 +111,38 @@ export default defineSchema({
       state: v.string(),
       zip: v.string(),
     }),
-  }).index("by_orderNumber", ["orderNumber"]).index("by_sessionId", ["sessionId"]),
+    // Stripe payment fields
+    stripeSessionId: v.optional(v.string()),
+    stripePaymentIntentId: v.optional(v.string()),
+    paymentStatus: v.optional(v.string()),
+    // Turn14 fulfillment fields
+    turn14OrderId: v.optional(v.string()),
+    turn14PO: v.optional(v.string()),
+    fulfillmentStatus: v.optional(v.string()),
+    trackingNumbers: v.optional(
+      v.array(
+        v.object({
+          carrier: v.string(),
+          trackingNumber: v.string(),
+          trackingUrl: v.optional(v.string()),
+        }),
+      ),
+    ),
+    shippingMethod: v.optional(v.string()),
+    // Cost tracking
+    costSubtotal: v.optional(v.number()),
+    dropshipFee: v.optional(v.number()),
+    shippingCost: v.optional(v.number()),
+  })
+    .index("by_orderNumber", ["orderNumber"])
+    .index("by_sessionId", ["sessionId"])
+    .index("by_stripeSessionId", ["stripeSessionId"]),
+
+  syncBrands: defineTable({
+    turn14BrandId: v.number(),
+    brandName: v.string(),
+    isEnabled: v.boolean(),
+  }).index("by_turn14BrandId", ["turn14BrandId"]).index("by_isEnabled", ["isEnabled"]),
 
   syncState: defineTable({
     syncType: v.string(),

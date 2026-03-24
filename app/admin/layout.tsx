@@ -17,6 +17,7 @@ import {
   IconUser,
   IconLogout,
   IconChevronUp,
+  IconBuildingStore,
 } from "@tabler/icons-react";
 import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/admin/products", label: "Products", icon: IconPackage, exact: false },
   { href: "/admin/inventory", label: "Inventory", icon: IconBoxSeam, exact: false },
   { href: "/admin/customers", label: "Customers", icon: IconUsers, exact: false },
+  { href: "/admin/brands", label: "Brands", icon: IconBuildingStore, exact: false },
   { href: "/admin/sync", label: "Sync Status", icon: IconRefresh, exact: false },
   { href: "/admin/settings", label: "Settings", icon: IconSettings, exact: false },
 ];

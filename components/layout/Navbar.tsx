@@ -28,7 +28,7 @@ export function Navbar() {
   const isAdmin = user?.publicMetadata?.role === "admin";
 
   // Pages with dark/colored heroes need light (white) nav text
-  const hasDarkHero = pathname === "/" || pathname.startsWith("/store");
+  const hasDarkHero = pathname === "/" || pathname === "/store";
   const isLight = scrolled || !hasDarkHero;
 
   useEffect(() => {
