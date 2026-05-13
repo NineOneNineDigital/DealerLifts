@@ -97,11 +97,11 @@ export default function ContactPage() {
                 <ul className="space-y-2 text-sm">
                   <li className="flex justify-between">
                     <span className="text-gray-500">Mon&ndash;Fri</span>
-                    <span className="text-gray-700 font-medium">8am&ndash;6pm</span>
+                    <span className="text-gray-700 font-medium">8am&ndash;5pm</span>
                   </li>
                   <li className="flex justify-between">
                     <span className="text-gray-500">Saturday</span>
-                    <span className="text-gray-700 font-medium">9am&ndash;3pm</span>
+                    <span className="text-gray-400">Closed</span>
                   </li>
                   <li className="flex justify-between">
                     <span className="text-gray-500">Sunday</span>
@@ -137,7 +137,7 @@ export default function ContactPage() {
               <div className="rounded-lg overflow-hidden border border-gray-100">
                 <iframe
                   title="Dealer Lifts Location"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d207478.0567879757!2d-78.8185!3d35.7796!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89ac5a2f9f51e0f7%3A0x6790b6528a11f0ad!2sRaleigh%2C%20NC!5e0!3m2!1sen!2sus!4v1709000000000!5m2!1sen!2sus"
+                  src="https://maps.google.com/maps?q=73+Crape+Myrtle+Dr+Benson+NC+27504&output=embed"
                   width="100%"
                   height="220"
                   style={{ border: 0 }}

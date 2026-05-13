@@ -25,17 +25,9 @@ export const list = query({
           .filter((q) => q.eq(q.field("contactEmail"), user.email))
           .collect();
 
-        const chats = await ctx.db
-          .query("chatConversations")
-          .withIndex("by_customerEmail", (q) =>
-            q.eq("customerEmail", user.email),
-          )
-          .collect();
-
         return {
           ...user,
           orderCount: orders.length,
-          chatCount: chats.length,
         };
       }),
     );
@@ -53,13 +45,6 @@ export const getById = query({
       .filter((q) => q.eq(q.field("contactEmail"), user.email))
       .collect();
 
-    const chats = await ctx.db
-      .query("chatConversations")
-      .withIndex("by_customerEmail", (q) =>
-        q.eq("customerEmail", user.email),
-      )
-      .collect();
-
-    return { ...user, orders, chats };
+    return { ...user, orders };
   },
 });

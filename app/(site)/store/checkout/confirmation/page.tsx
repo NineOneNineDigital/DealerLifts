@@ -1,16 +1,31 @@
 "use client";
 
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { PriceDisplay } from "@/components/store/PriceDisplay";
-import Link from "next/link";
 import { IconCircleCheck } from "@tabler/icons-react";
+import { useQuery } from "convex/react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import { PriceDisplay } from "@/components/store/PriceDisplay";
+import { api } from "@/convex/_generated/api";
+import { useSessionId } from "@/hooks/useSessionId";
+
+function ConfirmationSkeleton() {
+  return (
+    <div className="pt-32 md:pt-40">
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="animate-pulse space-y-4">
+          <div className="mx-auto h-8 w-1/3 rounded bg-gray-100" />
+          <div className="h-64 rounded-xl bg-gray-100" />
+          <div className="h-48 rounded-xl bg-gray-100" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ConfirmationPage() {
   return (
-    <Suspense fallback={<div className="pt-32 md:pt-40"><div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center"><p className="text-gray-400">Loading...</p></div></div>}>
+    <Suspense fallback={<ConfirmationSkeleton />}>
       <ConfirmationContent />
     </Suspense>
   );
@@ -19,30 +34,22 @@ export default function ConfirmationPage() {
 function ConfirmationContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get("order") || "";
-  const stripeSessionId = searchParams.get("stripe_session_id") || "";
+  const sessionId = useSessionId();
 
-  // Support lookup by order number (legacy) or Stripe session ID (new flow)
-  const orderByNumber = useQuery(
+  const order = useQuery(
     api.orders.getByOrderNumber,
-    orderNumber ? { orderNumber } : "skip",
-  );
-  const orderByStripe = useQuery(
-    api.orders.getByStripeSessionId,
-    stripeSessionId ? { stripeSessionId } : "skip",
+    orderNumber && sessionId ? { orderNumber, sessionId } : "skip"
   );
 
-  const order = orderByNumber || orderByStripe;
-  const isLoading =
-    (orderNumber && orderByNumber === undefined) ||
-    (stripeSessionId && orderByStripe === undefined);
-  const hasQuery = orderNumber || stripeSessionId;
-
-  if (!hasQuery) {
+  if (!orderNumber) {
     return (
       <div className="pt-32 md:pt-40">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+        <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6 lg:px-8">
           <p className="text-gray-500">No order found.</p>
-          <Link href="/store" className="text-[#077BFF] hover:underline text-sm font-medium mt-4 inline-block">
+          <Link
+            className="mt-4 inline-block font-medium text-[#077BFF] text-sm hover:underline"
+            href="/store"
+          >
             Back to Store
           </Link>
         </div>
@@ -50,42 +57,29 @@ function ConfirmationContent() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="pt-32 md:pt-40">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <p className="text-gray-400">Loading order...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Webhook may not have fired yet — show a processing state
-  if (!order && stripeSessionId) {
-    return (
-      <div className="pt-32 md:pt-40">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <IconCircleCheck size={56} className="mx-auto text-green-500 mb-4" />
-          <h1 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-            Payment Received!
-          </h1>
-          <p className="text-gray-500 mb-2">
-            Your payment was successful. We&apos;re processing your order now.
-          </p>
-          <p className="text-gray-400 text-sm">
-            This page will update automatically once your order is confirmed.
-          </p>
-        </div>
-      </div>
-    );
+  if (!sessionId || order === undefined) {
+    return <ConfirmationSkeleton />;
   }
 
   if (!order) {
     return (
       <div className="pt-32 md:pt-40">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <p className="text-gray-500">Order not found.</p>
-          <Link href="/store" className="text-[#077BFF] hover:underline text-sm font-medium mt-4 inline-block">
+        <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6 lg:px-8">
+          <p className="text-gray-700">
+            We couldn&apos;t locate that order yet — give us a moment, or
+            contact{" "}
+            <a
+              className="text-[#077BFF] hover:underline"
+              href="tel:919-275-8095"
+            >
+              (919) 275-8095
+            </a>{" "}
+            if this persists.
+          </p>
+          <Link
+            className="mt-4 inline-block font-medium text-[#077BFF] text-sm hover:underline"
+            href="/store"
+          >
             Back to Store
           </Link>
         </div>
@@ -93,72 +87,108 @@ function ConfirmationContent() {
     );
   }
 
+  const statusLabel = (order.paymentStatus || order.status).replace(/_/g, " ");
+
   return (
-    <div className="pt-32 md:pt-40">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center mb-10">
-          <IconCircleCheck size={56} className="mx-auto text-green-500 mb-4" />
-          <h1 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+    <div aria-live="polite" className="pt-32 md:pt-40" role="status">
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-10 text-center">
+          <IconCircleCheck className="mx-auto mb-4 text-green-500" size={56} />
+          <h1 className="mb-2 font-bold font-heading text-2xl text-gray-900 md:text-3xl">
             Order Confirmed!
           </h1>
           <p className="text-gray-500">
-            Thank you for your order. We&apos;ll be in touch with shipping details.
+            Thank you for your order. We&apos;ll be in touch with shipping
+            details.
           </p>
         </div>
 
-        <div className="bg-gray-50 rounded-xl p-6 mb-8">
-          <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="mb-8 rounded-xl bg-gray-50 p-6">
+          <div className="mb-6 grid grid-cols-2 gap-4">
             <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Order Number</p>
-              <p className="font-heading font-bold text-gray-900">{order.orderNumber}</p>
+              <p className="mb-1 text-gray-400 text-xs uppercase tracking-wider">
+                Order Number
+              </p>
+              <p className="font-bold font-heading text-gray-900">
+                {order.orderNumber}
+              </p>
             </div>
             <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Status</p>
-              <p className="font-medium text-gray-900 capitalize">{order.paymentStatus || order.status}</p>
+              <p className="mb-1 text-gray-400 text-xs uppercase tracking-wider">
+                Status
+              </p>
+              <p className="font-medium text-gray-900 capitalize">
+                {statusLabel}
+              </p>
             </div>
             <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Email</p>
-              <p className="text-sm text-gray-900">{order.contactEmail}</p>
+              <p className="mb-1 text-gray-400 text-xs uppercase tracking-wider">
+                Email
+              </p>
+              <p className="text-gray-900 text-sm">{order.contactEmail}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Total</p>
-              <PriceDisplay cents={order.total} className="font-bold text-gray-900" />
+              <p className="mb-1 text-gray-400 text-xs uppercase tracking-wider">
+                Total
+              </p>
+              <PriceDisplay
+                cents={order.total}
+                className="font-bold text-gray-900"
+              />
             </div>
           </div>
 
-          <div className="border-t border-gray-200 pt-4">
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">Shipping Address</p>
-            <p className="text-sm text-gray-700">
-              {order.contactName}<br />
-              {order.shippingAddress.street}<br />
-              {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zip}
+          <div className="border-gray-200 border-t pt-4">
+            <p className="mb-3 text-gray-400 text-xs uppercase tracking-wider">
+              Shipping Address
+            </p>
+            <p className="text-gray-700 text-sm">
+              {order.contactName}
+              <br />
+              {order.shippingAddress.street}
+              <br />
+              {order.shippingAddress.city}, {order.shippingAddress.state}{" "}
+              {order.shippingAddress.zip}
             </p>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl p-6">
-          <h3 className="font-heading font-bold text-gray-900 mb-4">Items</h3>
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <h3 className="mb-4 font-bold font-heading text-gray-900">Items</h3>
           <div className="space-y-3">
             {order.items.map((item, i) => (
-              <div key={i} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+              <div
+                className="flex items-center justify-between border-gray-50 border-b py-2 last:border-0"
+                key={`${item.partNumber}-${i}`}
+              >
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{item.title}</p>
-                  <p className="text-xs text-gray-400">Part # {item.partNumber} &times; {item.quantity}</p>
+                  <p className="font-medium text-gray-900 text-sm">
+                    {item.title}
+                  </p>
+                  <p className="text-gray-400 text-xs">
+                    Part # {item.partNumber} &times; {item.quantity}
+                  </p>
                 </div>
-                <PriceDisplay cents={item.price * item.quantity} className="text-sm font-medium text-gray-900" />
+                <PriceDisplay
+                  cents={item.price * item.quantity}
+                  className="font-medium text-gray-900 text-sm"
+                />
               </div>
             ))}
           </div>
-          <div className="border-t border-gray-200 pt-4 mt-4 flex justify-between">
+          <div className="mt-4 flex justify-between border-gray-200 border-t pt-4">
             <span className="font-medium text-gray-900">Total</span>
-            <PriceDisplay cents={order.total} className="text-lg font-bold text-gray-900" />
+            <PriceDisplay
+              cents={order.total}
+              className="font-bold text-gray-900 text-lg"
+            />
           </div>
         </div>
 
-        <div className="text-center mt-8">
+        <div className="mt-8 text-center">
           <Link
+            className="inline-block rounded-lg bg-[#077BFF] px-6 py-3 font-bold font-heading text-sm text-white uppercase tracking-wider transition-colors hover:bg-[#0565D4]"
             href="/store"
-            className="inline-block px-6 py-3 bg-[#077BFF] text-white font-heading font-bold text-sm uppercase tracking-wider rounded-lg hover:bg-[#0565D4] transition-colors"
           >
             Continue Shopping
           </Link>

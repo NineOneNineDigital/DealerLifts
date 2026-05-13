@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
+import { getCompletedProjects } from "@/lib/hygraph";
 import { GalleryContent } from "./GalleryContent";
 
 export const metadata: Metadata = {
   title: "Gallery",
   description:
-    "Browse our portfolio of custom truck builds, Jeep modifications, and off-road builds. Before and after photos of lift kits, wheels, lighting, and more.",
+    "Browse our portfolio of custom truck builds, Jeep modifications, and off-road builds. Photos of lift kits, wheels, lighting, and more.",
 };
 
-export default function GalleryPage() {
+export const revalidate = 60;
+
+export default async function GalleryPage() {
+  const projects = await getCompletedProjects();
+
   return (
     <>
       <section className="pt-32 pb-16 md:pt-40 md:pb-20">
@@ -25,7 +30,7 @@ export default function GalleryPage() {
         </div>
       </section>
 
-      <GalleryContent />
+      <GalleryContent projects={projects} />
     </>
   );
 }

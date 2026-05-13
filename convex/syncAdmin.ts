@@ -1,11 +1,13 @@
 import { v } from "convex/values";
 import { action, internalQuery, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { requireAdmin } from "./lib/adminAuth";
 
 /** Trigger a manual product sync */
 export const triggerProductSync = action({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     await ctx.runAction(internal.turn14.syncProducts.startSync);
   },
 });
@@ -14,6 +16,7 @@ export const triggerProductSync = action({
 export const triggerInventorySync = action({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     await ctx.runAction(internal.turn14.syncInventory.syncDelta);
   },
 });
@@ -22,6 +25,7 @@ export const triggerInventorySync = action({
 export const triggerPricingSync = action({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const enabledBrands: Array<{ turn14BrandId: number; brandName: string }> =
       await ctx.runQuery(internal.syncBrands.listEnabled);
 
@@ -49,6 +53,7 @@ export const triggerPricingSync = action({
 export const cancelSync = mutation({
   args: { syncType: v.string() },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const record = await ctx.db
       .query("syncState")
       .withIndex("by_syncType", (q) => q.eq("syncType", args.syncType))
@@ -62,6 +67,7 @@ export const cancelSync = mutation({
 export const list = query({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const records = await ctx.db.query("syncState").collect();
     return records.sort((a, b) => a.syncType.localeCompare(b.syncType));
   },

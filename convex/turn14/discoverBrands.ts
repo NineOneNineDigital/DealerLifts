@@ -1,7 +1,10 @@
 "use node";
 
-import { action } from "../_generated/server";
 import { internal } from "../_generated/api";
+import { action } from "../_generated/server";
+import { requireAdmin } from "../lib/adminAuth";
+import { getApiBase } from "./config";
+import { fetchWithRetry } from "./fetchWithRetry";
 
 /**
  * Fetches all available brands from Turn14 API.
@@ -10,10 +13,11 @@ import { internal } from "../_generated/api";
 export const fetchAll = action({
   args: {},
   handler: async (ctx): Promise<Array<{ id: number; name: string }>> => {
+    await requireAdmin(ctx);
     const token: string = await ctx.runAction(internal.turn14.auth.ensureToken);
 
     // Try the brands endpoint first
-    const res = await fetch("https://apitest.turn14.com/v1/brands", {
+    const res = await fetchWithRetry(`${getApiBase()}/v1/brands`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -27,8 +31,7 @@ export const fetchAll = action({
 
       for (const brand of brands) {
         const id = Number(brand.id);
-        const name =
-          brand.attributes?.name || brand.name || `Brand ${id}`;
+        const name = brand.attributes?.name || brand.name || `Brand ${id}`;
         results.push({ id, name });
       }
 
@@ -38,36 +41,34 @@ export const fetchAll = action({
 
     // Fallback: scan items to collect unique brands
     console.log(
-      `[discover] Brands endpoint returned HTTP ${res.status}, falling back to item scan`,
+      `[discover] Brands endpoint returned HTTP ${res.status}, falling back to item scan`
     );
     return await discoverFromItems(token);
   },
 });
 
 async function discoverFromItems(
-  token: string,
+  token: string
 ): Promise<Array<{ id: number; name: string }>> {
   const brandMap = new Map<number, string>();
   let page = 1;
-  const maxPages = 20;
 
-  while (page <= maxPages) {
-    const res = await fetch(
-      `https://apitest.turn14.com/v1/items?page=${page}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+  while (true) {
+    const res = await fetchWithRetry(`${getApiBase()}/v1/items?page=${page}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-    );
+    });
 
-    if (!res.ok) break;
+    if (!res.ok) {
+      break;
+    }
 
     const json = await res.json();
     const items = json.data || [];
     const meta = json.meta || {};
-    const totalPages = meta.total_pages || 1;
+    const totalPages: number = meta.total_pages || 1;
 
     for (const item of items) {
       const attrs = item.attributes || {};
@@ -76,7 +77,9 @@ async function discoverFromItems(
       }
     }
 
-    if (page >= totalPages) break;
+    if (page >= totalPages) {
+      break;
+    }
     page++;
   }
 

@@ -10,9 +10,6 @@ import {
   IconChevronDown,
   IconChevronUp,
   IconShoppingCart,
-  IconMessageCircle,
-  IconClock,
-  IconCircleCheck,
 } from "@tabler/icons-react";
 
 function formatDate(ts: number) {
@@ -45,23 +42,6 @@ function OrderStatusBadge({ status }: { status: string }) {
   );
 }
 
-function ChatStatusBadge({ status }: { status: "pending" | "active" | "closed" }) {
-  const config = {
-    pending: { classes: "bg-yellow-100 text-yellow-800", Icon: IconClock },
-    active: { classes: "bg-green-100 text-green-800", Icon: IconMessageCircle },
-    closed: { classes: "bg-gray-100 text-gray-600", Icon: IconCircleCheck },
-  }[status];
-
-  return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${config.classes}`}
-    >
-      <config.Icon size={10} />
-      {status}
-    </span>
-  );
-}
-
 function AvatarCircle({ name, email }: { name?: string; email: string }) {
   const letter = (name ?? email).charAt(0).toUpperCase();
   return (
@@ -89,75 +69,38 @@ function ExpandedCustomer({ id }: { id: Id<"users"> }) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-0 border-t border-gray-100 bg-gray-50 px-5 py-4 sm:grid-cols-2 sm:gap-6">
-      {/* Orders */}
-      <div>
-        <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">
-          <IconShoppingCart size={12} />
-          Orders ({data.orders.length})
-        </h3>
-        {data.orders.length === 0 ? (
-          <p className="text-xs text-gray-400">No orders yet.</p>
-        ) : (
-          <div className="space-y-1.5">
-            {data.orders.map((order) => (
-              <div
-                key={order._id}
-                className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2"
-              >
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {order.orderNumber}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {formatDate(order._creationTime)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">
-                    {formatCurrency(order.total)}
-                  </span>
-                  <OrderStatusBadge status={order.status} />
-                </div>
+    <div className="border-t border-gray-100 bg-gray-50 px-5 py-4">
+      <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">
+        <IconShoppingCart size={12} />
+        Orders ({data.orders.length})
+      </h3>
+      {data.orders.length === 0 ? (
+        <p className="text-xs text-gray-400">No orders yet.</p>
+      ) : (
+        <div className="space-y-1.5">
+          {data.orders.map((order) => (
+            <div
+              key={order._id}
+              className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2"
+            >
+              <div>
+                <p className="text-sm font-medium text-gray-900">
+                  {order.orderNumber}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {formatDate(order._creationTime)}
+                </p>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Chat conversations */}
-      <div className="mt-4 sm:mt-0">
-        <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">
-          <IconMessageCircle size={12} />
-          Chats ({data.chats.length})
-        </h3>
-        {data.chats.length === 0 ? (
-          <p className="text-xs text-gray-400">No conversations yet.</p>
-        ) : (
-          <div className="space-y-1.5">
-            {data.chats.map((chat) => (
-              <div
-                key={chat._id}
-                className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    {chat.customerName}
-                  </p>
-                  {chat.lastMessagePreview && (
-                    <p className="truncate text-xs text-gray-400">
-                      {chat.lastMessagePreview}
-                    </p>
-                  )}
-                </div>
-                <div className="ml-2 shrink-0">
-                  <ChatStatusBadge status={chat.status} />
-                </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">
+                  {formatCurrency(order.total)}
+                </span>
+                <OrderStatusBadge status={order.status} />
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -189,7 +132,7 @@ export default function AdminCustomersPage() {
           Customers
         </h1>
         <p className="mt-1 text-sm text-gray-500">
-          Registered users, their orders, and support conversations.
+          Registered users and their order history.
         </p>
       </div>
 
@@ -241,12 +184,11 @@ export default function AdminCustomersPage() {
         {customers !== undefined && customers.length > 0 && (
           <div className="divide-y divide-gray-100">
             {/* Column header */}
-            <div className="grid grid-cols-[auto_1fr_1fr_auto_auto_auto] items-center gap-4 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+            <div className="grid grid-cols-[auto_1fr_1fr_auto_auto] items-center gap-4 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
               <div className="w-9" />
               <div>Name</div>
               <div>Email / Phone</div>
               <div className="text-center">Orders</div>
-              <div className="text-center">Chats</div>
               <div className="w-5" />
             </div>
 
@@ -257,7 +199,7 @@ export default function AdminCustomersPage() {
                   <button
                     type="button"
                     onClick={() => toggleExpand(customer._id)}
-                    className="grid w-full grid-cols-[auto_1fr_1fr_auto_auto_auto] items-center gap-4 px-5 py-3 text-left transition-colors hover:bg-gray-50"
+                    className="grid w-full grid-cols-[auto_1fr_1fr_auto_auto] items-center gap-4 px-5 py-3 text-left transition-colors hover:bg-gray-50"
                   >
                     <AvatarCircle name={customer.name} email={customer.email} />
 
@@ -280,13 +222,6 @@ export default function AdminCustomersPage() {
                       <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
                         <IconShoppingCart size={11} />
                         {customer.orderCount}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-center">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700">
-                        <IconMessageCircle size={11} />
-                        {customer.chatCount}
                       </span>
                     </div>
 

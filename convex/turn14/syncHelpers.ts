@@ -1,5 +1,5 @@
-import { internalMutation } from "../_generated/server";
 import { v } from "convex/values";
+import { internalMutation } from "../_generated/server";
 
 function slugify(text: string): string {
   return text
@@ -89,17 +89,38 @@ export const upsertProduct = internalMutation({
       if (args.mapPrice === undefined && existing.mapPrice !== undefined) {
         delete patch.mapPrice;
       }
-      if (args.retailPrice === undefined && existing.retailPrice !== undefined) {
+      if (
+        args.retailPrice === undefined &&
+        existing.retailPrice !== undefined
+      ) {
         delete patch.retailPrice;
       }
       if (args.costPrice === undefined && existing.costPrice !== undefined) {
         delete patch.costPrice;
       }
+      // I-3: Don't overwrite non-empty images/thumbnail with empty values
+      const keepExistingImages =
+        args.images.length === 0 && existing.images.length > 0;
+      if (keepExistingImages) {
+        delete patch.images;
+      }
+      if (args.thumbnail === undefined && existing.thumbnail !== undefined) {
+        delete patch.thumbnail;
+      }
+      // Only publish products that have at least one image.
+      const finalImageCount = keepExistingImages
+        ? existing.images.length
+        : args.images.length;
+      patch.isActive = args.isActive && finalImageCount > 0;
       await ctx.db.patch(existing._id, patch);
       return existing._id;
     }
 
-    return await ctx.db.insert("products", { ...args, isFeatured: false });
+    return await ctx.db.insert("products", {
+      ...args,
+      isActive: args.isActive && args.images.length > 0,
+      isFeatured: false,
+    });
   },
 });
 
@@ -117,12 +138,20 @@ export const patchProductPricing = internalMutation({
       .withIndex("by_turn14Id", (q) => q.eq("turn14Id", args.turn14Id))
       .first();
 
-    if (!existing) return;
+    if (!existing) {
+      return;
+    }
 
     const patch: Record<string, number | undefined> = {};
-    if (args.mapPrice !== undefined) patch.mapPrice = args.mapPrice;
-    if (args.retailPrice !== undefined) patch.retailPrice = args.retailPrice;
-    if (args.costPrice !== undefined) patch.costPrice = args.costPrice;
+    if (args.mapPrice !== undefined) {
+      patch.mapPrice = args.mapPrice;
+    }
+    if (args.retailPrice !== undefined) {
+      patch.retailPrice = args.retailPrice;
+    }
+    if (args.costPrice !== undefined) {
+      patch.costPrice = args.costPrice;
+    }
 
     if (Object.keys(patch).length > 0) {
       await ctx.db.patch(existing._id, patch);
@@ -170,7 +199,8 @@ export const upsertSyncState = internalMutation({
 
     const data = {
       ...args,
-      lastSyncedAt: args.status === "complete" ? Date.now() : existing?.lastSyncedAt,
+      lastSyncedAt:
+        args.status === "complete" ? Date.now() : existing?.lastSyncedAt,
     };
 
     if (existing) {

@@ -5,14 +5,22 @@ import { BrandPartners } from "@/components/home/BrandPartners";
 import { StatsBar } from "@/components/home/StatsBar";
 import { Testimonials } from "@/components/home/Testimonials";
 import { CTABanner } from "@/components/home/CTABanner";
+import { getCompletedProjects } from "@/lib/hygraph";
 
-export default function Home() {
+export const revalidate = 60;
+
+export default async function Home() {
+  const allProjects = await getCompletedProjects();
+  const featured = allProjects
+    .filter((p) => p.featuredProject && (p.mainImage || p.images?.[0]))
+    .slice(0, 3);
+
   return (
     <>
       <Hero />
       <StatsBar />
       <ServicesPreview />
-      <FeaturedBuilds />
+      <FeaturedBuilds projects={featured} />
       <BrandPartners />
       <Testimonials />
       <CTABanner />

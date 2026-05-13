@@ -12,14 +12,19 @@ export default defineSchema({
     name: v.string(),
     slug: v.string(),
     logo: v.optional(v.string()),
-  }).index("by_slug", ["slug"]).index("by_turn14Id", ["turn14Id"]),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_turn14Id", ["turn14Id"]),
 
   categories: defineTable({
     turn14Id: v.number(),
     name: v.string(),
     slug: v.string(),
     parentId: v.optional(v.id("categories")),
-  }).index("by_slug", ["slug"]).index("by_turn14Id", ["turn14Id"]).index("by_parentId", ["parentId"]),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_turn14Id", ["turn14Id"])
+    .index("by_parentId", ["parentId"]),
 
   products: defineTable({
     turn14Id: v.number(),
@@ -98,7 +103,7 @@ export default defineSchema({
         price: v.number(),
         quantity: v.number(),
         image: v.optional(v.string()),
-      }),
+      })
     ),
     subtotal: v.number(),
     total: v.number(),
@@ -111,9 +116,8 @@ export default defineSchema({
       state: v.string(),
       zip: v.string(),
     }),
-    // Stripe payment fields
-    stripeSessionId: v.optional(v.string()),
-    stripePaymentIntentId: v.optional(v.string()),
+    // Authorize.net payment fields
+    authnetTransactionId: v.optional(v.string()),
     paymentStatus: v.optional(v.string()),
     // Turn14 fulfillment fields
     turn14OrderId: v.optional(v.string()),
@@ -125,24 +129,30 @@ export default defineSchema({
           carrier: v.string(),
           trackingNumber: v.string(),
           trackingUrl: v.optional(v.string()),
-        }),
-      ),
+        })
+      )
     ),
     shippingMethod: v.optional(v.string()),
     // Cost tracking
     costSubtotal: v.optional(v.number()),
     dropshipFee: v.optional(v.number()),
     shippingCost: v.optional(v.number()),
+    // Risk flags (set when AVS/CVV mismatch — needs manual review)
+    flagged: v.optional(v.boolean()),
+    flagReason: v.optional(v.string()),
   })
     .index("by_orderNumber", ["orderNumber"])
     .index("by_sessionId", ["sessionId"])
-    .index("by_stripeSessionId", ["stripeSessionId"]),
+    .index("by_contactEmail", ["contactEmail"])
+    .index("by_authnetTransactionId", ["authnetTransactionId"]),
 
   syncBrands: defineTable({
     turn14BrandId: v.number(),
     brandName: v.string(),
     isEnabled: v.boolean(),
-  }).index("by_turn14BrandId", ["turn14BrandId"]).index("by_isEnabled", ["isEnabled"]),
+  })
+    .index("by_turn14BrandId", ["turn14BrandId"])
+    .index("by_isEnabled", ["isEnabled"]),
 
   syncState: defineTable({
     syncType: v.string(),
@@ -152,41 +162,4 @@ export default defineSchema({
     lastSyncedAt: v.optional(v.number()),
     error: v.optional(v.string()),
   }).index("by_syncType", ["syncType"]),
-
-  chatConversations: defineTable({
-    sessionId: v.string(),
-    customerName: v.string(),
-    customerEmail: v.string(),
-    status: v.union(
-      v.literal("pending"),
-      v.literal("active"),
-      v.literal("closed"),
-    ),
-    assignedAdmin: v.optional(v.string()),
-    lastMessageAt: v.number(),
-    lastMessagePreview: v.optional(v.string()),
-  })
-    .index("by_sessionId", ["sessionId"])
-    .index("by_customerEmail", ["customerEmail"])
-    .index("by_status_lastMessageAt", ["status", "lastMessageAt"]),
-
-  chatMessages: defineTable({
-    conversationId: v.id("chatConversations"),
-    sender: v.union(v.literal("customer"), v.literal("admin")),
-    senderName: v.string(),
-    body: v.string(),
-    sentAt: v.number(),
-  }).index("by_conversationId_sentAt", ["conversationId", "sentAt"]),
-
-  chatTypingIndicators: defineTable({
-    conversationId: v.id("chatConversations"),
-    sender: v.union(v.literal("customer"), v.literal("admin")),
-    senderName: v.string(),
-    expiresAt: v.number(),
-  }).index("by_conversationId", ["conversationId"]),
-
-  chatSettings: defineTable({
-    key: v.string(),
-    value: v.string(),
-  }).index("by_key", ["key"]),
 });

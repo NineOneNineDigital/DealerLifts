@@ -1,11 +1,13 @@
 import { mutation, query } from "./_generated/server";
 import { internalQuery } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAdmin } from "./lib/adminAuth";
 
 /** List all sync brands (admin UI) */
 export const list = query({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     return await ctx.db.query("syncBrands").collect();
   },
 });
@@ -32,6 +34,7 @@ export const add = mutation({
     brandName: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db
       .query("syncBrands")
       .withIndex("by_turn14BrandId", (q) =>
@@ -62,6 +65,7 @@ export const toggle = mutation({
     isEnabled: v.boolean(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.id, { isEnabled: args.isEnabled });
   },
 });
@@ -70,6 +74,7 @@ export const toggle = mutation({
 export const remove = mutation({
   args: { id: v.id("syncBrands") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });

@@ -1,58 +1,23 @@
 "use client";
 
+import { Dialog } from "@base-ui/react/dialog";
 import {
   IconBriefcase,
-  IconMapPin,
   IconClock,
-  IconTool,
-  IconUsers,
   IconHeart,
+  IconMail,
+  IconMapPin,
+  IconTool,
   IconTrophy,
+  IconUsers,
+  IconX,
 } from "@tabler/icons-react";
+import { useState } from "react";
 import { ScrollReveal } from "@/components/animations/ScrollReveal";
-import { ApplicationForm } from "@/components/forms/ApplicationForm";
+import { buttonVariants } from "@/components/ui/button";
+import type { JobPosition } from "@/lib/hygraph";
 
-const openPositions = [
-  {
-    title: "Automotive Mechanic / Technician",
-    type: "Full-Time",
-    location: "Raleigh, NC",
-    description:
-      "Experienced mechanic to perform diagnostics, repairs, and maintenance on a variety of vehicles. Must have ASE certification or equivalent experience.",
-    requirements: [
-      "3+ years automotive repair experience",
-      "ASE certification preferred",
-      "Own tools required",
-      "Valid driver's license",
-    ],
-  },
-  {
-    title: "Lift & Suspension Installer",
-    type: "Full-Time",
-    location: "Raleigh, NC",
-    description:
-      "Install lift kits, suspension systems, and related components on trucks, Jeeps, and SUVs. Experience with Carli, BDS, Icon, and Fox preferred.",
-    requirements: [
-      "2+ years lift kit installation experience",
-      "Knowledge of major suspension brands",
-      "Ability to lift 75+ lbs",
-      "Attention to detail",
-    ],
-  },
-  {
-    title: "Service Advisor",
-    type: "Full-Time",
-    location: "Raleigh, NC",
-    description:
-      "Front-of-house role managing customer interactions, scheduling, estimates, and service coordination. Automotive knowledge required.",
-    requirements: [
-      "2+ years in automotive service advising",
-      "Strong communication skills",
-      "Basic automotive knowledge",
-      "Experience with shop management software",
-    ],
-  },
-];
+const APPLY_EMAIL = "info@dealerlifts.com";
 
 const perks = [
   { icon: IconTool, label: "Top-tier brands & parts" },
@@ -61,26 +26,143 @@ const perks = [
   { icon: IconTrophy, label: "Growth opportunities" },
 ];
 
-export function CareersContent() {
+interface Props {
+  loadError: string | null;
+  positions: JobPosition[];
+}
+
+function buildMailto(jobTitle: string) {
+  const subject = encodeURIComponent(`Application: ${jobTitle}`);
+  const body = encodeURIComponent(
+    `Hi Dealer Lifts team,\n\nI'd like to apply for the ${jobTitle} position. My resume is attached.\n\nThanks,\n`
+  );
+  return `mailto:${APPLY_EMAIL}?subject=${subject}&body=${body}`;
+}
+
+function JobMeta({ position }: { position: JobPosition }) {
+  return (
+    <div className="flex flex-wrap gap-x-4 gap-y-2 text-gray-400 text-xs">
+      {position.jobType ? (
+        <span className="flex items-center gap-1">
+          <IconClock size={12} />
+          {position.jobType}
+        </span>
+      ) : null}
+      {position.location ? (
+        <span className="flex items-center gap-1">
+          <IconMapPin size={12} />
+          {position.location}
+        </span>
+      ) : null}
+      {position.workTime ? (
+        <span className="flex items-center gap-1">
+          <IconBriefcase size={12} />
+          {position.workTime}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function PositionsList({
+  positions,
+  loadError,
+  onOpen,
+}: {
+  positions: JobPosition[];
+  loadError: string | null;
+  onOpen: (id: string) => void;
+}) {
+  if (loadError) {
+    return (
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900 text-sm">
+        We couldn&apos;t load open positions right now. Please email{" "}
+        <a className="underline" href={`mailto:${APPLY_EMAIL}`}>
+          {APPLY_EMAIL}
+        </a>{" "}
+        to inquire about opportunities.
+      </div>
+    );
+  }
+
+  if (positions.length === 0) {
+    return (
+      <div className="rounded-lg border border-gray-100 p-8 text-center">
+        <p className="font-medium text-gray-600">
+          No open positions right now.
+        </p>
+        <p className="mt-2 text-gray-500 text-sm">
+          We&apos;re always interested in meeting talented people. Send your
+          resume to{" "}
+          <a
+            className="text-[#077BFF] hover:underline"
+            href={`mailto:${APPLY_EMAIL}`}
+          >
+            {APPLY_EMAIL}
+          </a>
+          .
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {positions.map((position) => (
+        <ScrollReveal key={position.id}>
+          <button
+            className="group w-full rounded-lg border border-gray-100 p-6 text-left transition-all hover:border-gray-300 hover:shadow-sm"
+            onClick={() => onOpen(position.id)}
+            type="button"
+          >
+            <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+              <h3 className="flex items-center gap-2 font-bold font-heading text-lg transition-colors group-hover:text-[#077BFF]">
+                <IconBriefcase className="text-[#077BFF]" size={18} />
+                {position.name}
+              </h3>
+              <span className="font-semibold text-[#077BFF] text-xs">
+                View details →
+              </span>
+            </div>
+            <JobMeta position={position} />
+            {position.jobDescription?.text ? (
+              <p className="mt-3 line-clamp-2 text-gray-500 text-sm">
+                {position.jobDescription.text}
+              </p>
+            ) : null}
+          </button>
+        </ScrollReveal>
+      ))}
+    </div>
+  );
+}
+
+export function CareersContent({ positions, loadError }: Props) {
+  const [openId, setOpenId] = useState<string | null>(null);
+  const openPosition = positions.find((p) => p.id === openId) ?? null;
+
   return (
     <>
       {/* Hero */}
       <section className="pt-32 pb-16 md:pt-40 md:pb-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-[#077BFF] text-sm font-semibold tracking-wide uppercase mb-3">
+        <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
+          <p className="mb-3 font-semibold text-[#077BFF] text-sm uppercase tracking-wide">
             Careers
           </p>
-          <h1 className="font-heading text-4xl md:text-5xl font-bold">
+          <h1 className="font-bold font-heading text-4xl md:text-5xl">
             Build trucks. Build a career.
           </h1>
-          <p className="mt-4 text-gray-500 text-lg max-w-2xl mx-auto">
+          <p className="mx-auto mt-4 max-w-2xl text-gray-500 text-lg">
             We&apos;re always looking for talented, passionate people to join
-            the Dealer Lifts crew in Raleigh, NC.
+            the Dealer Lifts crew.
           </p>
-          <div className="flex flex-wrap justify-center gap-6 mt-8">
+          <div className="mt-8 flex flex-wrap justify-center gap-6">
             {perks.map((perk) => (
-              <div key={perk.label} className="flex items-center gap-2 text-sm text-gray-500">
-                <perk.icon size={16} className="text-[#077BFF]" />
+              <div
+                className="flex items-center gap-2 text-gray-500 text-sm"
+                key={perk.label}
+              >
+                <perk.icon className="text-[#077BFF]" size={16} />
                 <span>{perk.label}</span>
               </div>
             ))}
@@ -90,63 +172,93 @@ export function CareersContent() {
 
       {/* Open Positions */}
       <section className="pb-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            {/* Positions list */}
-            <div className="lg:col-span-7 space-y-4">
-              <h2 className="font-heading text-2xl font-bold mb-2">
-                Open Positions
-              </h2>
-              {openPositions.map((position) => (
-                <ScrollReveal key={position.title}>
-                  <div className="border border-gray-100 rounded-lg p-6 hover:border-gray-200 transition-colors">
-                    <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
-                      <h3 className="font-heading text-lg font-bold flex items-center gap-2">
-                        <IconBriefcase size={18} className="text-[#077BFF]" />
-                        {position.title}
-                      </h3>
-                      <div className="flex gap-3 text-xs text-gray-400">
-                        <span className="flex items-center gap-1">
-                          <IconClock size={12} />
-                          {position.type}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <IconMapPin size={12} />
-                          {position.location}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-gray-500 text-sm mb-4">{position.description}</p>
-                    <ul className="flex flex-wrap gap-2">
-                      {position.requirements.map((req) => (
-                        <li
-                          key={req}
-                          className="text-xs text-gray-500 bg-gray-50 px-2.5 py-1 rounded"
-                        >
-                          {req}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </ScrollReveal>
-              ))}
-            </div>
-
-            {/* Application form */}
-            <div className="lg:col-span-5">
-              <div className="lg:sticky lg:top-28">
-                <h2 className="font-heading text-2xl font-bold mb-1">
-                  Apply Now
-                </h2>
-                <p className="text-gray-500 text-sm mb-6">
-                  Interested? Send us your info and we&apos;ll be in touch.
-                </p>
-                <ApplicationForm />
-              </div>
-            </div>
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-6 flex items-end justify-between">
+            <h2 className="font-bold font-heading text-2xl">Open Positions</h2>
+            <a
+              className="hidden items-center gap-1.5 text-[#077BFF] text-sm hover:underline sm:inline-flex"
+              href={`mailto:${APPLY_EMAIL}`}
+            >
+              <IconMail size={14} />
+              {APPLY_EMAIL}
+            </a>
           </div>
+
+          <PositionsList
+            loadError={loadError}
+            onOpen={setOpenId}
+            positions={positions}
+          />
         </div>
       </section>
+
+      {/* Job Details Modal */}
+      <Dialog.Root
+        onOpenChange={(open) => {
+          if (!open) {
+            setOpenId(null);
+          }
+        }}
+        open={openPosition !== null}
+      >
+        <Dialog.Portal>
+          <Dialog.Backdrop className="data-open:fade-in-0 data-closed:fade-out-0 fixed inset-0 z-50 bg-black/40 duration-150 data-closed:animate-out data-open:animate-in supports-backdrop-filter:backdrop-blur-sm" />
+          <Dialog.Popup className="data-open:fade-in-0 data-closed:fade-out-0 data-open:zoom-in-95 data-closed:zoom-out-95 fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100vh-4rem)] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl bg-white shadow-2xl outline-none ring-1 ring-foreground/10 duration-150 data-closed:animate-out data-open:animate-in">
+            {openPosition ? (
+              <>
+                <div className="flex items-start justify-between gap-4 border-gray-100 border-b p-6 pb-4">
+                  <div>
+                    <Dialog.Title className="font-bold font-heading text-xl">
+                      {openPosition.name}
+                    </Dialog.Title>
+                    <div className="mt-2">
+                      <JobMeta position={openPosition} />
+                    </div>
+                  </div>
+                  <Dialog.Close
+                    aria-label="Close"
+                    className="rounded-md p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                  >
+                    <IconX size={18} />
+                  </Dialog.Close>
+                </div>
+
+                <div className="overflow-y-auto p-6">
+                  {openPosition.jobDescription?.html ? (
+                    <div
+                      className="job-description text-gray-600 text-sm leading-relaxed [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_a:hover]:text-[#077BFF]/80 [&_a]:text-[#077BFF] [&_a]:underline [&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:font-bold [&_h1]:font-heading [&_h1]:text-gray-900 [&_h1]:text-lg [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:font-bold [&_h2]:font-heading [&_h2]:text-base [&_h2]:text-gray-900 [&_h3]:mt-3 [&_h3]:mb-1.5 [&_h3]:font-bold [&_h3]:font-heading [&_h3]:text-gray-900 [&_h3]:text-sm [&_ol]:mb-3 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_p]:mb-3 [&_strong]:font-semibold [&_strong]:text-gray-900 [&_ul]:mb-3 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5"
+                      // biome-ignore lint/security/noDangerouslySetInnerHtml: Hygraph sanitizes rich-text HTML output server-side
+                      dangerouslySetInnerHTML={{
+                        __html: openPosition.jobDescription.html,
+                      }}
+                    />
+                  ) : (
+                    <p className="text-gray-500 text-sm">
+                      Details coming soon. Email us to learn more about this
+                      role.
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3 border-gray-100 border-t bg-gray-50/50 p-6 sm:flex-row sm:justify-end">
+                  <Dialog.Close
+                    className={buttonVariants({ variant: "outline" })}
+                  >
+                    Close
+                  </Dialog.Close>
+                  <a
+                    className={buttonVariants()}
+                    href={buildMailto(openPosition.name)}
+                  >
+                    <IconMail size={16} />
+                    Email your application
+                  </a>
+                </div>
+              </>
+            ) : null}
+          </Dialog.Popup>
+        </Dialog.Portal>
+      </Dialog.Root>
     </>
   );
 }

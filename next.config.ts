@@ -19,6 +19,22 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.cloudfront.net",
       },
+      {
+        protocol: "https",
+        hostname: "*.graphassets.com",
+      },
+      {
+        protocol: "https",
+        hostname: "media.graphassets.com",
+      },
+      {
+        protocol: "https",
+        hostname: "uploads-ssl.webflow.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.prod.website-files.com",
+      },
     ],
   },
 };

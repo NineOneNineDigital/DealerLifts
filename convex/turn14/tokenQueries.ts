@@ -1,5 +1,6 @@
 import { internalMutation, internalQuery, mutation } from "../_generated/server";
 import { v } from "convex/values";
+import { requireAdmin } from "../lib/adminAuth";
 
 export const getToken = internalQuery({
   args: {},
@@ -29,6 +30,7 @@ export const saveToken = internalMutation({
 export const clearTokens = mutation({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
     const tokens = await ctx.db.query("turn14Tokens").collect();
     for (const token of tokens) {
       await ctx.db.delete(token._id);

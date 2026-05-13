@@ -3,34 +3,29 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth, useUser, useClerk } from "@clerk/nextjs";
+import { useUser, useClerk } from "@clerk/nextjs";
 import {
   IconDashboard,
-  IconMessageCircle,
   IconShoppingCart,
   IconPackage,
   IconBoxSeam,
   IconUsers,
   IconRefresh,
-  IconSettings,
   IconArrowLeft,
   IconUser,
   IconLogout,
   IconChevronUp,
   IconBuildingStore,
 } from "@tabler/icons-react";
-import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: IconDashboard, exact: true },
-  { href: "/admin/chat", label: "Chat", icon: IconMessageCircle, exact: false },
   { href: "/admin/orders", label: "Orders", icon: IconShoppingCart, exact: false },
   { href: "/admin/products", label: "Products", icon: IconPackage, exact: false },
   { href: "/admin/inventory", label: "Inventory", icon: IconBoxSeam, exact: false },
   { href: "/admin/customers", label: "Customers", icon: IconUsers, exact: false },
   { href: "/admin/brands", label: "Brands", icon: IconBuildingStore, exact: false },
   { href: "/admin/sync", label: "Sync Status", icon: IconRefresh, exact: false },
-  { href: "/admin/settings", label: "Settings", icon: IconSettings, exact: false },
 ];
 
 function AdminUserButton({ pathname }: { pathname: string | null }) {
@@ -114,8 +109,6 @@ function AdminShell({
   pathname: string | null;
   children: React.ReactNode;
 }) {
-  const { unreadCount } = useAdminNotifications();
-
   return (
     <div className="flex h-screen bg-gray-50">
       <aside className="flex w-60 flex-col border-r border-gray-200 bg-white">
@@ -142,11 +135,6 @@ function AdminShell({
               >
                 <item.icon size={18} />
                 {item.label}
-                {item.label === "Chat" && unreadCount > 0 && (
-                  <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
-                    {unreadCount}
-                  </span>
-                )}
               </Link>
             );
           })}
@@ -175,11 +163,5 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-
-  // TODO: Re-enable auth gate once Clerk sign-in is working
-  // const { isSignedIn, isLoaded } = useAuth();
-  // if (!isLoaded) return spinner;
-  // if (!isSignedIn) return null;
-
   return <AdminShell pathname={pathname}>{children}</AdminShell>;
 }

@@ -82,3 +82,49 @@
 .animate-scroll-left {
   animation: scroll-left 25s linear infinite;
 }
+
+/* Rich-text rendering for Hygraph project details */
+.project-details-html p {
+  margin: 0;
+}
+.project-details-html p + p {
+  margin-top: 0.35rem;
+}
+.project-details-html p:has(> strong > em) {
+  margin-top: 1rem;
+  color: #0f172a;
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.project-details-html p:has(> strong > em):first-child {
+  margin-top: 0;
+}
+.project-details-html p > strong > em {
+  font-style: normal;
+}
+.project-details-html strong {
+  color: #111827;
+  font-weight: 600;
+}
+.project-details-html a {
+  color: #077BFF;
+  text-decoration: underline;
+}
+.project-details-html ul,
+.project-details-html ol {
+  margin: 0.35rem 0 0.35rem 1.25rem;
+  padding: 0;
+}
+.project-details-html ul { list-style: disc; }
+.project-details-html ol { list-style: decimal; }
+.project-details-html h1,
+.project-details-html h2,
+.project-details-html h3 {
+  margin-top: 1rem;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: #0f172a;
+}

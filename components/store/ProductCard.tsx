@@ -1,21 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { IconCheck, IconShoppingCart } from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
-import { IconShoppingCart, IconCheck } from "@tabler/icons-react";
+import { useState } from "react";
+import type { Doc } from "@/convex/_generated/dataModel";
+import { useCart } from "@/hooks/useCart";
 import { PriceDisplay } from "./PriceDisplay";
 import { StockBadge } from "./StockBadge";
-import { useCart } from "@/hooks/useCart";
-import type { Doc } from "@/convex/_generated/dataModel";
 
 interface ProductCardProps {
-  product: Doc<"products">;
   brandName?: string;
   inStock?: boolean;
+  product: Doc<"products">;
 }
 
-export function ProductCard({ product, brandName, inStock = true }: ProductCardProps) {
+export function ProductCard({
+  product,
+  brandName,
+  inStock = true,
+}: ProductCardProps) {
   const image = product.thumbnail || product.images[0];
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
@@ -23,45 +27,54 @@ export function ProductCard({ product, brandName, inStock = true }: ProductCardP
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!inStock) return;
+    if (!inStock) {
+      return;
+    }
     addItem(product._id);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
 
   return (
-    <div className="group relative bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
-      <Link href={`/store/products/${product.slug}`} className="block">
+    <div className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-md">
+      <Link className="block" href={`/store/products/${product.slug}`}>
         <div className="relative aspect-square bg-gray-50">
           {image ? (
             <Image
-              src={image}
               alt={product.title}
+              className="object-contain p-4 transition-transform duration-300 group-hover:scale-105"
               fill
-              unoptimized
-              className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
+              src={image}
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-300 text-sm">
+            <div className="flex h-full items-center justify-center text-gray-300 text-sm">
               No Image
             </div>
           )}
         </div>
         <div className="p-4 pb-3">
           {brandName && (
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{brandName}</p>
+            <p className="mb-1 text-gray-400 text-xs uppercase tracking-wider">
+              {brandName}
+            </p>
           )}
-          <h3 className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-[#077BFF] transition-colors">
+          <h3 className="line-clamp-2 font-medium text-gray-900 text-sm transition-colors group-hover:text-[#077BFF]">
             {product.title}
           </h3>
-          <p className="text-xs text-gray-400 mt-1">{product.partNumber}</p>
-          <div className="flex items-center justify-between mt-3">
+          <p className="mt-1 text-gray-400 text-xs">{product.partNumber}</p>
+          <div className="mt-3 flex items-center justify-between">
             {product.mapPrice ? (
-              <PriceDisplay cents={product.mapPrice} className="text-lg font-bold text-gray-900" />
+              <PriceDisplay
+                cents={product.mapPrice}
+                className="font-bold text-gray-900 text-lg"
+              />
             ) : product.retailPrice ? (
-              <PriceDisplay cents={product.retailPrice} className="text-lg font-bold text-gray-900" />
+              <PriceDisplay
+                cents={product.retailPrice}
+                className="font-bold text-gray-900 text-lg"
+              />
             ) : (
-              <span className="text-sm text-gray-400">Contact for price</span>
+              <span className="text-gray-400 text-sm">Contact for price</span>
             )}
             <StockBadge inStock={inStock} />
           </div>
@@ -69,18 +82,18 @@ export function ProductCard({ product, brandName, inStock = true }: ProductCardP
       </Link>
 
       {/* Add to Cart button — always visible on mobile, hover-revealed on desktop */}
-      <div className="px-4 pb-4 md:opacity-0 md:translate-y-1 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-200">
+      <div className="px-4 pb-4 transition-all duration-200 md:translate-y-1 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100">
         <button
-          type="button"
-          onClick={handleAddToCart}
-          disabled={!inStock}
-          className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+          className={`flex w-full items-center justify-center gap-2 rounded-lg py-2.5 font-semibold text-sm transition-colors ${
             added
               ? "bg-green-500 text-white"
               : inStock
-                ? "bg-[#077BFF] hover:bg-[#0565D4] text-white"
-                : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                ? "bg-[#077BFF] text-white hover:bg-[#0565D4]"
+                : "cursor-not-allowed bg-gray-100 text-gray-400"
           }`}
+          disabled={!inStock}
+          onClick={handleAddToCart}
+          type="button"
         >
           {added ? (
             <>
