@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useClerk } from "@clerk/nextjs";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -13,6 +13,14 @@ import {
 type Stage = "form" | "verify";
 
 export default function SignUpPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignUpPageInner />
+    </Suspense>
+  );
+}
+
+function SignUpPageInner() {
   const clerk = useClerk();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -32,7 +40,7 @@ export default function SignUpPage() {
     setError(clerkError.errors?.[0]?.message ?? fallback);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!clerk.loaded) {
       setError(
@@ -64,7 +72,7 @@ export default function SignUpPage() {
     }
   };
 
-  const handleVerify = async (e: React.FormEvent) => {
+  const handleVerify = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);

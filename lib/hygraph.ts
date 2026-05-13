@@ -150,31 +150,9 @@ export async function getCompletedProjects(): Promise<CompletedProject[]> {
   return data.completedProjects;
 }
 
-const COMPLETED_PROJECT_BY_SLUG_QUERY = /* GraphQL */ `
-  query CompletedProjectBySlug($slug: String!) {
-    completedProject(where: { slug: $slug }) {
-      id
-      name
-      slug
-      year
-      make
-      model
-      mainImage
-      images
-      featuredProject
-      projectDetails {
-        html
-        text
-      }
-    }
-  }
-`;
-
 export async function getCompletedProjectBySlug(
   slug: string
 ): Promise<CompletedProject | null> {
-  const data = await hygraphFetch<{
-    completedProject: CompletedProject | null;
-  }>(COMPLETED_PROJECT_BY_SLUG_QUERY, { slug });
-  return data.completedProject;
+  const projects = await getCompletedProjects();
+  return projects.find((p) => p.slug === slug) ?? null;
 }

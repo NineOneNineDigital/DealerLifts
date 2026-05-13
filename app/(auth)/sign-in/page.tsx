@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useClerk } from "@clerk/nextjs";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -11,6 +11,14 @@ import {
 } from "@tabler/icons-react";
 
 export default function SignInPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignInPageInner />
+    </Suspense>
+  );
+}
+
+function SignInPageInner() {
   const clerk = useClerk();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -21,7 +29,7 @@ export default function SignInPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!clerk.loaded) {
       setError(
