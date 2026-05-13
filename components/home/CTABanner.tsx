@@ -16,12 +16,12 @@ export function CTABanner() {
             Ready to start?
           </p>
           <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
-            Let&apos;s build something
-            <br className="hidden sm:block" /> worth&nbsp;showing&nbsp;off.
+            Let&apos;s keep your vehicle
+            <br className="hidden sm:block" /> running&nbsp;its&nbsp;best.
           </h2>
           <p className="mt-5 text-gray-400 text-lg leading-relaxed max-w-xl mx-auto">
-            Whether it&apos;s a full custom build or your next oil change —
-            we treat every vehicle like it&apos;s our own.
+            From an oil change to a full custom build — we treat every vehicle
+            like it&apos;s our own.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">

@@ -10,9 +10,9 @@ import {
 import { ScrollReveal } from "@/components/animations/ScrollReveal";
 
 const steps = [
-  { icon: IconMessageCircle, title: "Consult", description: "Tell us about your vehicle and your vision." },
+  { icon: IconMessageCircle, title: "Consult", description: "Tell us about your vehicle and what it needs." },
   { icon: IconFileDescription, title: "Quote", description: "Transparent pricing — no hidden fees." },
-  { icon: IconHammer, title: "Build", description: "Premium parts, installed with precision." },
+  { icon: IconHammer, title: "Service", description: "Quality parts and labor, done right the first time." },
   { icon: IconCircleCheck, title: "Deliver", description: "Walk-through and you drive away." },
 ];
 
@@ -27,7 +27,7 @@ export function ProcessSection() {
                 How It Works
               </p>
               <h2 className="font-heading text-3xl font-bold">
-                Four steps to your dream ride.
+                From drop-off to drive-off in four steps.
               </h2>
             </div>
             <Link

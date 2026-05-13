@@ -14,6 +14,34 @@ import { ScrollReveal } from "@/components/animations/ScrollReveal";
 
 const services = [
   {
+    icon: IconDroplet,
+    title: "Oil Changes & Scheduled Maintenance",
+    description:
+      "Quick, quality oil changes, fluid flushes, and routine maintenance. Premium synthetic oils and filters to keep your vehicle running its best.",
+    brands: [],
+  },
+  {
+    icon: IconEngine,
+    title: "Engine & Drivetrain Service",
+    description:
+      "Complete engine diagnostics, repair, and tuning. Transmission service, differential rebuilds, and drivetrain repair for all makes and models.",
+    brands: ["Borla"],
+  },
+  {
+    icon: IconDisc,
+    title: "Brakes & Repair",
+    description:
+      "Brake inspections, pad and rotor replacement, stainless steel lines, and performance upgrades — stopping power you can count on.",
+    brands: [],
+  },
+  {
+    icon: IconWheel,
+    title: "Wheels, Tires & Alignment",
+    description:
+      "Tire mounting, balancing, and alignment for any vehicle. New wheels and tires from Method, Fuel, BFGoodrich, Nitto, and Toyo.",
+    brands: ["Method", "Fuel", "BFGoodrich"],
+  },
+  {
     icon: IconArrowUp,
     title: "Lift Kits & Suspension",
     description:
@@ -21,11 +49,11 @@ const services = [
     brands: ["Carli", "BDS", "Fox", "Icon"],
   },
   {
-    icon: IconWheel,
-    title: "Wheels & Tires",
+    icon: IconBulb,
+    title: "Lighting & Electrical",
     description:
-      "Method Race Wheels, Fuel Off-Road, and more. Paired with BFGoodrich, Nitto, and Toyo tires. Mounting, balancing, and alignment.",
-    brands: ["Method", "Fuel", "BFGoodrich"],
+      "Morimoto headlights, Rigid Industries light bars, rock lights, and complete electrical upgrades and diagnostics.",
+    brands: ["Morimoto", "Rigid"],
   },
   {
     icon: IconShieldCheck,
@@ -35,38 +63,10 @@ const services = [
     brands: ["Fab Fours", "ADD", "ARB"],
   },
   {
-    icon: IconBulb,
-    title: "Lighting & Electrical",
-    description:
-      "Morimoto headlights, Rigid Industries light bars, rock lights, and complete electrical upgrades.",
-    brands: ["Morimoto", "Rigid"],
-  },
-  {
-    icon: IconDroplet,
-    title: "Oil Changes & Maintenance",
-    description:
-      "Quick, quality oil changes and fluid services. Premium synthetic oils and filters to keep your engine at peak performance.",
-    brands: [],
-  },
-  {
-    icon: IconDisc,
-    title: "Brakes & Upgrades",
-    description:
-      "Stock brake replacements and performance upgrades. Bigger rotors, premium pads, and stainless steel lines.",
-    brands: [],
-  },
-  {
-    icon: IconEngine,
-    title: "Engine & Drivetrain",
-    description:
-      "Complete engine diagnostics, repair, and tuning. Transmission service, differential rebuilds, and drivetrain upgrades.",
-    brands: ["Borla"],
-  },
-  {
     icon: IconCar4wd,
-    title: "Custom Off-Road Builds",
+    title: "Custom Builds",
     description:
-      "Full-service custom build packages. From concept to completion, your ultimate off-road machine with the best parts available.",
+      "Full-service custom build packages. From concept to completion, your dream vehicle assembled with the best parts available.",
     brands: [],
   },
 ];

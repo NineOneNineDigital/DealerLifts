@@ -91,11 +91,11 @@ export function AboutContent({ team }: Props) {
               <div className="relative">
                 <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
                   <Image
-                    alt="Dealer Lifts shop"
+                    alt="Custom Jeep Wrangler Unlimited build by Dealer Lifts"
                     className="object-cover"
                     fill
                     sizes="(min-width: 1024px) 50vw, 100vw"
-                    src="/images/webflow/about-us/65b096218e541bb9aa0a55b9-goldamb12.jpg"
+                    src="/dealerlifts-build002.jpg"
                   />
                 </div>
                 <div className="absolute -bottom-5 -left-5 rounded-lg bg-[#077BFF] px-5 py-4 text-white">

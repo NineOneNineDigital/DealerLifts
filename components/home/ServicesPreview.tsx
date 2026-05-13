@@ -12,27 +12,27 @@ import { ScrollReveal } from "@/components/animations/ScrollReveal";
 
 const services = [
   {
-    icon: IconArrowUp,
-    title: "Performance Upgrades",
+    icon: IconCalendarCheck,
+    title: "Scheduled Maintenance",
     description:
-      "Lift kits, suspension, wheels & tires, bumpers, lighting, and custom off-road builds from 40+ premium brands.",
-    tags: ["Carli", "BDS", "Fox", "Method"],
+      "Oil changes, fluid flushes, tire rotations, and routine maintenance to keep your vehicle running its best.",
+    tags: ["Oil Change", "Tires", "Fluids"],
     href: "/services",
   },
   {
     icon: IconTool,
-    title: "Auto Repair",
+    title: "Auto Repair & Diagnostics",
     description:
       "Expert diagnostics and repair for all makes and models. Brakes, engine, drivetrain — done right the first time.",
     tags: ["Diagnostics", "Brakes", "Engine"],
     href: "/services",
   },
   {
-    icon: IconCalendarCheck,
-    title: "Scheduled Maintenance",
+    icon: IconArrowUp,
+    title: "Performance Upgrades",
     description:
-      "Oil changes, fluid flushes, tire rotations, and routine maintenance to keep your vehicle at peak performance.",
-    tags: ["Oil Change", "Tires", "Fluids"],
+      "Lift kits, suspension, wheels & tires, bumpers, lighting, and custom builds from 40+ premium brands.",
+    tags: ["Carli", "BDS", "Fox", "Method"],
     href: "/services",
   },
 ];
@@ -49,11 +49,11 @@ export function ServicesPreview() {
                 What we do
               </p>
               <h2 className="font-heading text-3xl md:text-4xl font-bold leading-tight">
-                Three ways we keep your&nbsp;ride dialed.
+                Everything your vehicle needs, under one roof.
               </h2>
               <p className="mt-4 text-gray-500 leading-relaxed">
-                Whether you want to go higher, look meaner, or just keep things
-                running smooth — we&apos;ve got you.
+                From routine maintenance to performance upgrades — our
+                certified techs keep every make and model running its best.
               </p>
               <Link
                 href="/services"

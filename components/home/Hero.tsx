@@ -39,31 +39,16 @@ export function Hero() {
       {/* Content */}
       <div className="relative z-10 flex flex-1 flex-col">
         <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-4 pt-32 pb-16 sm:px-6 lg:px-8">
-          <motion.div
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-7 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3.5 py-1.5 backdrop-blur-md"
-            initial={{ opacity: 0, y: 16 }}
-            transition={{ duration: 0.5 }}
-          >
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-400" />
-            </span>
-            <span className="font-medium text-white/85 text-xs tracking-wide">
-              Now booking builds for 2026
-            </span>
-          </motion.div>
-
           <motion.h1
             animate={{ opacity: 1, y: 0 }}
             className="max-w-4xl font-bold font-heading text-white text-[2.75rem] leading-[1.02] tracking-tight sm:text-6xl md:text-7xl xl:text-[5.5rem]"
             initial={{ opacity: 0, y: 24 }}
             transition={{ duration: 0.7, delay: 0.1 }}
           >
-            Raleigh&rsquo;s home for
+            Built for performance.
             <br />
             <span className="bg-gradient-to-r from-[#3D9BFF] via-[#077BFF] to-[#0565D4] bg-clip-text text-transparent">
-              custom truck builds.
+              Trusted for everything else.
             </span>
           </motion.h1>
 
@@ -73,8 +58,9 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.7, delay: 0.2 }}
           >
-            Lifts, suspensions, wheels, and full-service repair — under one
-            roof, backed by 30&nbsp;years of experience.
+            From oil changes and brakes to lift kits and custom builds — every
+            make, every model, all under one roof. Backed by 30&nbsp;years of
+            experience.
           </motion.p>
 
           <motion.div
