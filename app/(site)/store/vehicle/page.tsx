@@ -1,17 +1,26 @@
 "use client";
 
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
 import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
 import { ProductCard } from "@/components/store/ProductCard";
 import { ProductGrid } from "@/components/store/ProductGrid";
 import { VehicleSelector } from "@/components/store/VehicleSelector";
-import Link from "next/link";
+import { api } from "@/convex/_generated/api";
+import { useSelectedVehicle } from "@/lib/vehicle/VehicleProvider";
 
 export default function VehiclePage() {
   return (
-    <Suspense fallback={<div className="pt-32 md:pt-40"><div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center"><p className="text-gray-400">Loading...</p></div></div>}>
+    <Suspense
+      fallback={
+        <div className="pt-32 md:pt-40">
+          <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
+            <p className="text-gray-400">Loading...</p>
+          </div>
+        </div>
+      }
+    >
       <VehicleContent />
     </Suspense>
   );
@@ -19,22 +28,45 @@ export default function VehiclePage() {
 
 function VehicleContent() {
   const searchParams = useSearchParams();
-  const year = searchParams.get("year");
-  const make = searchParams.get("make") || "";
-  const model = searchParams.get("model") || "";
+  const { vehicle, setVehicle } = useSelectedVehicle();
+
+  // URL params win when present (shareable links), otherwise fall back to persisted vehicle.
+  const urlYear = searchParams.get("year");
+  const urlMake = searchParams.get("make");
+  const urlModel = searchParams.get("model");
+
+  const year = urlYear ? Number(urlYear) : vehicle?.year;
+  const make = urlMake || vehicle?.make || "";
+  const model = urlModel || vehicle?.model || "";
+
+  // If we landed here from a shared link, persist the selection so the banner
+  // and badges work consistently on subsequent pages.
+  useEffect(() => {
+    if (
+      urlYear &&
+      urlMake &&
+      urlModel &&
+      (!vehicle ||
+        vehicle.year !== Number(urlYear) ||
+        vehicle.make !== urlMake ||
+        vehicle.model !== urlModel)
+    ) {
+      setVehicle({ year: Number(urlYear), make: urlMake, model: urlModel });
+    }
+  }, [urlYear, urlMake, urlModel, vehicle, setVehicle]);
 
   const products = useQuery(
     api.fitments.getProductsByFitment,
-    year && make && model
-      ? { year: Number(year), make, model }
-      : "skip",
+    year && make && model ? { year, make, model } : "skip"
   );
 
   return (
     <div className="pt-32 md:pt-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-          <Link href="/store" className="hover:text-gray-900">Store</Link>
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-6 flex items-center gap-2 text-gray-400 text-sm">
+          <Link className="hover:text-gray-900" href="/store">
+            Store
+          </Link>
           <span>/</span>
           <span className="text-gray-900">Vehicle Parts</span>
         </div>
@@ -44,7 +76,7 @@ function VehicleContent() {
         </div>
 
         {year && make && model && (
-          <h2 className="font-heading text-xl font-bold text-gray-900 mb-6">
+          <h2 className="mb-6 font-bold font-heading text-gray-900 text-xl">
             Parts for {year} {make} {model}
           </h2>
         )}
@@ -52,9 +84,14 @@ function VehicleContent() {
         {products === undefined && year ? (
           <p className="text-gray-400 text-sm">Loading...</p>
         ) : products && products.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 mb-4">No parts found for this vehicle.</p>
-            <Link href="/store" className="text-[#077BFF] hover:underline text-sm font-medium">
+          <div className="py-12 text-center">
+            <p className="mb-4 text-gray-500">
+              No parts found for this vehicle.
+            </p>
+            <Link
+              className="font-medium text-[#077BFF] text-sm hover:underline"
+              href="/store"
+            >
               Browse all products
             </Link>
           </div>
@@ -63,7 +100,7 @@ function VehicleContent() {
             {products.map((product) =>
               product ? (
                 <ProductCard key={product._id} product={product} />
-              ) : null,
+              ) : null
             )}
           </ProductGrid>
         ) : null}

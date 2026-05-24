@@ -27,6 +27,7 @@ import type * as turn14_auth from "../turn14/auth.js";
 import type * as turn14_config from "../turn14/config.js";
 import type * as turn14_discoverBrands from "../turn14/discoverBrands.js";
 import type * as turn14_fetchWithRetry from "../turn14/fetchWithRetry.js";
+import type * as turn14_syncFitments from "../turn14/syncFitments.js";
 import type * as turn14_syncHelpers from "../turn14/syncHelpers.js";
 import type * as turn14_syncInventory from "../turn14/syncInventory.js";
 import type * as turn14_syncProducts from "../turn14/syncProducts.js";
@@ -59,6 +60,7 @@ declare const fullApi: ApiFromModules<{
   "turn14/config": typeof turn14_config;
   "turn14/discoverBrands": typeof turn14_discoverBrands;
   "turn14/fetchWithRetry": typeof turn14_fetchWithRetry;
+  "turn14/syncFitments": typeof turn14_syncFitments;
   "turn14/syncHelpers": typeof turn14_syncHelpers;
   "turn14/syncInventory": typeof turn14_syncInventory;
   "turn14/syncProducts": typeof turn14_syncProducts;

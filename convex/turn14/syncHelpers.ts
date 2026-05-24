@@ -183,6 +183,71 @@ export const upsertInventory = internalMutation({
   },
 });
 
+/**
+ * Replace all fitments for a single product in one call.
+ * Used by syncFitments so we don't accumulate stale rows when Turn14 drops a fitment.
+ */
+export const replaceProductFitments = internalMutation({
+  args: {
+    productId: v.id("products"),
+    fitments: v.array(
+      v.object({
+        year: v.number(),
+        make: v.string(),
+        model: v.string(),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("fitments")
+      .withIndex("by_productId", (q) => q.eq("productId", args.productId))
+      .collect();
+    for (const row of existing) {
+      await ctx.db.delete(row._id);
+    }
+    for (const f of args.fitments) {
+      await ctx.db.insert("fitments", {
+        productId: args.productId,
+        year: f.year,
+        make: f.make,
+        model: f.model,
+      });
+    }
+  },
+});
+
+/** Ensure a make exists in vehicleMakes (idempotent). */
+export const ensureVehicleMake = internalMutation({
+  args: { name: v.string() },
+  handler: async (ctx, { name }) => {
+    const existing = await ctx.db
+      .query("vehicleMakes")
+      .withIndex("by_name", (q) => q.eq("name", name))
+      .first();
+    if (existing) {
+      return existing._id;
+    }
+    return await ctx.db.insert("vehicleMakes", { name });
+  },
+});
+
+/** Ensure a make+model exists in vehicleModels (idempotent). */
+export const ensureVehicleModel = internalMutation({
+  args: { make: v.string(), name: v.string() },
+  handler: async (ctx, { make, name }) => {
+    const existing = await ctx.db
+      .query("vehicleModels")
+      .withIndex("by_make", (q) => q.eq("make", make))
+      .filter((q) => q.eq(q.field("name"), name))
+      .first();
+    if (existing) {
+      return existing._id;
+    }
+    return await ctx.db.insert("vehicleModels", { make, name });
+  },
+});
+
 export const upsertSyncState = internalMutation({
   args: {
     syncType: v.string(),

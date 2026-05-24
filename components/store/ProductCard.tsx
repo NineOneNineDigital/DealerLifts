@@ -1,6 +1,6 @@
 "use client";
 
-import { IconCheck, IconShoppingCart } from "@tabler/icons-react";
+import { IconCar, IconCheck, IconShoppingCart } from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -11,6 +11,7 @@ import { StockBadge } from "./StockBadge";
 
 interface ProductCardProps {
   brandName?: string;
+  fitsVehicle?: boolean;
   inStock?: boolean;
   product: Doc<"products">;
 }
@@ -19,6 +20,7 @@ export function ProductCard({
   product,
   brandName,
   inStock = true,
+  fitsVehicle = false,
 }: ProductCardProps) {
   const image = product.thumbnail || product.images[0];
   const { addItem } = useCart();
@@ -37,6 +39,12 @@ export function ProductCard({
 
   return (
     <div className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-md">
+      {fitsVehicle && (
+        <div className="absolute top-3 left-3 z-10 inline-flex items-center gap-1 rounded-full bg-green-600 px-2 py-0.5 font-semibold text-[10px] text-white uppercase tracking-wide shadow-sm">
+          <IconCar size={11} />
+          Fits your vehicle
+        </div>
+      )}
       <Link className="block" href={`/store/products/${product.slug}`}>
         <div className="relative aspect-square bg-gray-50">
           {image ? (

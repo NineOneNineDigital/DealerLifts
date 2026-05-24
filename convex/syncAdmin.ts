@@ -1,6 +1,6 @@
 import { v } from "convex/values";
-import { action, internalQuery, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { action, internalQuery, mutation, query } from "./_generated/server";
 import { requireAdmin } from "./lib/adminAuth";
 
 /** Trigger a manual product sync */
@@ -9,6 +9,15 @@ export const triggerProductSync = action({
   handler: async (ctx) => {
     await requireAdmin(ctx);
     await ctx.runAction(internal.turn14.syncProducts.startSync);
+  },
+});
+
+/** Trigger a manual fitment sync */
+export const triggerFitmentSync = action({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    await ctx.runAction(internal.turn14.syncFitments.startSync);
   },
 });
 
@@ -29,10 +38,16 @@ export const triggerPricingSync = action({
     const enabledBrands: Array<{ turn14BrandId: number; brandName: string }> =
       await ctx.runQuery(internal.syncBrands.listEnabled);
 
-    if (enabledBrands.length === 0) return;
+    if (enabledBrands.length === 0) {
+      return;
+    }
 
-    const brandIds = enabledBrands.map((b: { turn14BrandId: number }) => b.turn14BrandId);
-    const brandNames = enabledBrands.map((b: { brandName: string }) => b.brandName);
+    const brandIds = enabledBrands.map(
+      (b: { turn14BrandId: number }) => b.turn14BrandId
+    );
+    const brandNames = enabledBrands.map(
+      (b: { brandName: string }) => b.brandName
+    );
 
     await ctx.runMutation(internal.turn14.syncHelpers.upsertSyncState, {
       syncType: "products",
@@ -40,12 +55,16 @@ export const triggerPricingSync = action({
       status: "running",
     });
 
-    await ctx.scheduler.runAfter(0, internal.turn14.syncProducts.syncPricingPage, {
-      brandIndex: 0,
-      brandIds,
-      brandNames,
-      page: 1,
-    });
+    await ctx.scheduler.runAfter(
+      0,
+      internal.turn14.syncProducts.syncPricingPage,
+      {
+        brandIndex: 0,
+        brandIds,
+        brandNames,
+        page: 1,
+      }
+    );
   },
 });
 
