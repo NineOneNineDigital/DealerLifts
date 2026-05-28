@@ -5,9 +5,9 @@ export interface Money {
 
 export interface ShopifyImage {
   altText: string | null;
-  height: number;
+  height: number | null;
   url: string;
-  width: number;
+  width: number | null;
 }
 
 export interface ShopifyVariant {
