@@ -11,7 +11,7 @@ interface ShopifyResponse<T> {
   errors?: ShopifyError[];
 }
 
-interface FetchOptions {
+export interface FetchOptions {
   cache?: RequestCache;
   revalidate?: number;
 }
