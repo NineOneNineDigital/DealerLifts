@@ -1,53 +1,53 @@
-export type Money = {
+export interface Money {
   amount: string;
   currencyCode: string;
-};
+}
 
-export type ShopifyImage = {
-  url: string;
+export interface ShopifyImage {
   altText: string | null;
-  width: number;
   height: number;
-};
+  url: string;
+  width: number;
+}
 
-export type ShopifyVariant = {
+export interface ShopifyVariant {
+  availableForSale: boolean;
   id: string;
+  price: Money;
+  quantityAvailable: number | null;
   sku: string | null;
   title: string;
-  availableForSale: boolean;
-  quantityAvailable: number | null;
-  price: Money;
-};
+}
 
-export type ShopifyMetafield = {
-  namespace: string;
+export interface ShopifyMetafield {
   key: string;
+  namespace: string;
   type: string;
   value: string;
-};
+}
 
-export type ShopifyProduct = {
-  id: string;
-  handle: string;
-  title: string;
-  vendor: string;
-  description: string;
-  productType: string;
-  tags: string[];
+export interface ShopifyProduct {
   createdAt: string;
+  description: string;
   featuredImage: ShopifyImage | null;
+  handle: string;
+  id: string;
   images: { nodes: ShopifyImage[] };
-  priceRange: { minVariantPrice: Money };
-  variants: { nodes: ShopifyVariant[] };
   // `metafields` returns null for identifiers that don't exist on the product,
   // so the array is sparse and entries can be null.
   metafields: (ShopifyMetafield | null)[];
-};
+  priceRange: { minVariantPrice: Money };
+  productType: string;
+  tags: string[];
+  title: string;
+  variants: { nodes: ShopifyVariant[] };
+  vendor: string;
+}
 
-export type ProductConnection = {
+export interface ProductConnection {
   nodes: ShopifyProduct[];
   pageInfo: {
     hasNextPage: boolean;
     endCursor: string | null;
   };
-};
+}
