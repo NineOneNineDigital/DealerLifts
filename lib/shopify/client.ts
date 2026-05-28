@@ -19,7 +19,7 @@ interface FetchOptions {
 const MAX_ATTEMPTS = 3;
 const BASE_BACKOFF_MS = 500;
 
-function endpoint(): string {
+function resolveConfig(): { url: string; token: string } {
   if (!DOMAIN) {
     throw new Error("SHOPIFY_STORE_DOMAIN is not set. Add it to .env.local.");
   }
@@ -28,7 +28,10 @@ function endpoint(): string {
       "SHOPIFY_STOREFRONT_API_TOKEN is not set. Add it to .env.local."
     );
   }
-  return `https://${DOMAIN}/api/${VERSION}/graphql.json`;
+  return {
+    url: `https://${DOMAIN}/api/${VERSION}/graphql.json`,
+    token: TOKEN,
+  };
 }
 
 export async function shopifyFetch<T>(
@@ -36,7 +39,12 @@ export async function shopifyFetch<T>(
   variables?: Record<string, unknown>,
   options?: FetchOptions
 ): Promise<T> {
-  const url = endpoint();
+  const { url, token } = resolveConfig();
+  // `next.revalidate` and `cache` are mutually exclusive in Next.js fetch options; passing both produces a runtime warning.
+  const cacheOpts: Pick<RequestInit, "next" | "cache"> =
+    options?.cache === undefined
+      ? { next: { revalidate: options?.revalidate ?? 60 } }
+      : { cache: options.cache };
   let lastError: Error | null = null;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -44,20 +52,18 @@ export async function shopifyFetch<T>(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Shopify-Storefront-Access-Token": TOKEN as string,
+        "X-Shopify-Storefront-Access-Token": token,
       },
       body: JSON.stringify({ query, variables }),
-      next:
-        options?.cache === undefined
-          ? { revalidate: options?.revalidate ?? 60 }
-          : undefined,
-      cache: options?.cache,
+      ...cacheOpts,
     });
 
     if (res.status === 430 || res.status === 429) {
       // Shopify throttling: backoff and retry.
       lastError = new Error(`Shopify throttled (HTTP ${res.status})`);
-      await sleep(BASE_BACKOFF_MS * 2 ** (attempt - 1));
+      if (attempt < MAX_ATTEMPTS) {
+        await sleep(BASE_BACKOFF_MS * 2 ** (attempt - 1));
+      }
       continue;
     }
 
