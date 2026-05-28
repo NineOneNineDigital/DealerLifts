@@ -56,6 +56,8 @@ Required for Phase 4 (Customer Account API OAuth).
 2. Open one product and scroll to "Metafields". Note any metafields Turn14's app has set — especially anything that looks like fitment data (YMM, vehicle, fitment, application, etc.).
 3. Run the Phase 0 smoke check (see plan Task 7) against this product.
 
+> **Important:** The smoke endpoint at `/api/dev/shopify-smoke` is gated by `NODE_ENV !== "production"`. On Vercel preview deploys, `NODE_ENV` is `"production"`, so the route returns 404. Run the smoke check against a **local** `npm run dev` server with `.env.local` set up, not against a preview URL.
+
 ## 6. Curate "featured" products (deferred to Phase 1)
 
 The Turn14 app does not set a "featured" flag. When ready for the read-side cutover, manually tag 8 products with the `featured` tag in Shopify Admin so the home page featured row populates.
