@@ -17,9 +17,11 @@ import {
 // Config
 // ---------------------------------------------------------------------------
 
-const CUSTOMER_ACCOUNT_API_URL = process.env.SHOPIFY_CUSTOMER_ACCOUNT_API_URL;
-// Customer Account API version is separate from Storefront API version.
-const API_VERSION = "2024-10";
+const RE_TRAILING_SLASH = /\/+$/;
+const CUSTOMER_ACCOUNT_API_URL = process.env.SHOPIFY_CUSTOMER_ACCOUNT_API_URL
+  ?.replace(RE_TRAILING_SLASH, "")
+  // Strip a trailing /graphql if the operator pasted the full endpoint URL.
+  .replace(/\/graphql$/, "");
 
 function resolveApiUrl(): string {
   if (!CUSTOMER_ACCOUNT_API_URL) {
@@ -27,7 +29,10 @@ function resolveApiUrl(): string {
       "SHOPIFY_CUSTOMER_ACCOUNT_API_URL is not set. Add it to .env.local."
     );
   }
-  return `${CUSTOMER_ACCOUNT_API_URL}/account/customer/api/${API_VERSION}/graphql`;
+  // The env var is expected to be the full base path
+  // `https://shopify.com/{shop-id}/account/customer/api/{version}`;
+  // we just append `/graphql`.
+  return `${CUSTOMER_ACCOUNT_API_URL}/graphql`;
 }
 
 // ---------------------------------------------------------------------------
