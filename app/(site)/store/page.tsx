@@ -15,6 +15,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { BrandGrid } from "@/components/store/BrandGrid";
+import { BuildTypeGrid } from "@/components/store/BuildTypeGrid";
 import { ProductCard } from "@/components/store/ProductCard";
 import { ProductGrid } from "@/components/store/ProductGrid";
 import { StoreHero } from "@/components/store/StoreHero";
@@ -110,6 +111,9 @@ export default async function StorePage() {
 
       <div className="bg-gray-50">
         <div className="mx-auto max-w-7xl space-y-16 px-4 py-12 sm:px-6 lg:px-8">
+          {/* Shop by Build Type */}
+          <BuildTypeGrid />
+
           {/* Featured Products */}
           {featured.length > 0 && (
             <section>
@@ -174,7 +178,7 @@ export default async function StorePage() {
                           className={`absolute inset-0 bg-gradient-to-br ${gradient}`}
                         >
                           <Icon
-                            className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 text-white/30 transition-transform duration-500 group-hover:scale-110"
+                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white/30 transition-transform duration-500 group-hover:scale-110"
                             size={80}
                           />
                         </div>

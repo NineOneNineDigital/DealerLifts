@@ -52,7 +52,7 @@ export function StoreHero() {
               method="get"
             >
               <IconSearch
-                className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-4 text-gray-400"
+                className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-gray-400"
                 size={20}
               />
               <input
@@ -62,7 +62,7 @@ export function StoreHero() {
                 type="text"
               />
               <button
-                className="-translate-y-1/2 absolute top-1/2 right-2 rounded-lg bg-[#077BFF] px-5 py-2.5 font-semibold text-sm text-white transition-colors hover:bg-[#0565D4]"
+                className="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg bg-[#077BFF] px-5 py-2.5 font-semibold text-sm text-white transition-colors hover:bg-[#0565D4]"
                 type="submit"
               >
                 Search
