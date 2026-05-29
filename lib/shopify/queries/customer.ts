@@ -1,6 +1,7 @@
 import { customerFetch } from "@/lib/shopify/customer-account-client";
 import type {
   Customer,
+  CustomerAddress,
   CustomerOrder,
   CustomerOrderConnection,
 } from "@/lib/shopify/types";
@@ -124,6 +125,31 @@ export async function getCustomerOrders(args: {
     first: args.first,
   });
   return data.customer.orders;
+}
+
+/**
+ * Fetch a page of saved addresses for the authenticated customer.
+ */
+export async function getCustomerAddresses(
+  first = 25
+): Promise<CustomerAddress[]> {
+  const QUERY = /* GraphQL */ `
+    ${ADDRESS_FRAGMENT}
+    query GetCustomerAddresses($first: Int!) {
+      customer {
+        addresses(first: $first) {
+          nodes {
+            ...AddressFields
+          }
+        }
+      }
+    }
+  `;
+
+  const data = await customerFetch<{
+    customer: { addresses: { nodes: CustomerAddress[] } };
+  }>(QUERY, { first });
+  return data.customer.addresses.nodes;
 }
 
 /**
