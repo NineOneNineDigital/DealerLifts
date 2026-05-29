@@ -61,3 +61,26 @@ Required for Phase 4 (Customer Account API OAuth).
 ## 6. Curate "featured" products (deferred to Phase 1)
 
 The Turn14 app does not set a "featured" flag. When ready for the read-side cutover, manually tag 8 products with the `featured` tag in Shopify Admin so the home page featured row populates.
+
+---
+
+## Phase 0 findings (2026-05-29)
+
+- **Storefront API connectivity:** ✅
+- **Required scope additions:** `unauthenticated_read_product_inventory` (initially missing — without it `quantityAvailable` returns a `THROTTLED`-style access-denied GraphQL error)
+- **Products synced:** at least 3+ Air Lift products and 1+ Addictive Desert Designs product confirmed via Storefront API. Initial sync still in progress.
+- **Vendor field populated:** ✅ (e.g. "Air Lift", "Addictive Desert Designs")
+- **Variants with SKU + price:** ✅ (e.g. SKU `ALF11993`, price `$7.99 USD` on a sensor arm)
+- **Inventory `quantityAvailable` populated:** ✅
+- **Fitment metafield location:** ❌ Turn14's Shopify app does NOT populate product metafields with fitment data. All five guessed identifiers (`custom.fitments`, `custom.fitment`, `turn14.fitments`, `turn14.vehicles`, `specifications.fitments`) return `null`.
+- **Fitment data location (actual):** Embedded in `descriptionHtml` as an HTML table. Marker phrase `<p>This Part Fits:</p>` precedes a `<table border="1">` whose header row is `Year | Make | Model | Submodel`. Body rows carry one fitment each. Year column may be a single year or a hyphen-separated range (`2024-2025`). Example confirmed on handle `addictive-desert-designs-2024-toyota-tacoma-stealth-rear-bumper`.
+- **Universal/non-fitment parts:** Have a plain `description` without the fitment table (e.g. air tanks, sensor arms). Fitment parsing must gracefully no-op when the marker phrase is absent.
+
+### Implications for Phase 1b
+
+Original Phase 1a-foundation `PRODUCT_FRAGMENT` queries metafields that will never be set. The 5 speculative metafield identifiers can be removed once Phase 1b's fitment strategy is chosen.
+
+Phase 1b options:
+1. **Server-side description parsing.** Parse `descriptionHtml` at query time on the product detail page; cache aggregated `{year, make, model} → [productHandle]` maps for the vehicle selector / vehicle filter page. Heavy compute on first request after each cache window.
+2. **Side-channel fitments via Shopify Admin API.** Run a periodic job that reads `descriptionHtml`, parses fitments, writes them back as a `custom.fitments` metafield via Admin API. Then the storefront queries metafields cleanly. Requires Admin API token + a sync job (Vercel Cron, etc.).
+3. **Keep `convex/turn14/*` running as a fitment-only feed.** Pull fitments straight from Turn14's API into Convex, keep the existing vehicle selector backed by Convex even after the rest of the storefront flips to Shopify. Smallest UI risk, but contradicts the "Shopify as source of truth" goal.
