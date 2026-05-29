@@ -76,11 +76,29 @@ The Turn14 app does not set a "featured" flag. When ready for the read-side cuto
 - **Fitment data location (actual):** Embedded in `descriptionHtml` as an HTML table. Marker phrase `<p>This Part Fits:</p>` precedes a `<table border="1">` whose header row is `Year | Make | Model | Submodel`. Body rows carry one fitment each. Year column may be a single year or a hyphen-separated range (`2024-2025`). Example confirmed on handle `addictive-desert-designs-2024-toyota-tacoma-stealth-rear-bumper`.
 - **Universal/non-fitment parts:** Have a plain `description` without the fitment table (e.g. air tanks, sensor arms). Fitment parsing must gracefully no-op when the marker phrase is absent.
 
+### Phase 0 findings update (2026-05-29, second pass)
+
+Store has the **EasySearch by NexusMedia** Shopify app installed. EasySearch writes fitments as Shopify product tags using the format `YEAR-MAKE-MODEL-SUBMODEL-esi{ID}` (all lowercase, hyphen-separated). Examples:
+
+```
+1980-toyota-land-cruiser-base-esi8372037
+1980-gmc-k2500-suburban-base-esi6152156
+2002-cadillac-escalade-base-esi8988213
+```
+
+Universal/non-fitment parts use `UniversalFitment:Y` instead. Turn14 metadata also lives in tags (`TURN14_ID:181499`, `MPN:12955`, `Prop65:Y`, etc.) and Shopify product-category breadcrumbs appear as tags with `>` separators (`Suspension>Air Tanks`).
+
+Tags are exposed via Storefront API by default — our existing `PRODUCT_FRAGMENT` already requests them. Coverage is uneven during EasySearch's initial sync (some brands fully tagged, others zero tags so far).
+
 ### Implications for Phase 1b
 
-Original Phase 1a-foundation `PRODUCT_FRAGMENT` queries metafields that will never be set. The 5 speculative metafield identifiers can be removed once Phase 1b's fitment strategy is chosen.
+The 5 speculative metafield identifiers in `PRODUCT_FRAGMENT` can be removed (they will never be set).
 
-Phase 1b options:
-1. **Server-side description parsing.** Parse `descriptionHtml` at query time on the product detail page; cache aggregated `{year, make, model} → [productHandle]` maps for the vehicle selector / vehicle filter page. Heavy compute on first request after each cache window.
-2. **Side-channel fitments via Shopify Admin API.** Run a periodic job that reads `descriptionHtml`, parses fitments, writes them back as a `custom.fitments` metafield via Admin API. Then the storefront queries metafields cleanly. Requires Admin API token + a sync job (Vercel Cron, etc.).
-3. **Keep `convex/turn14/*` running as a fitment-only feed.** Pull fitments straight from Turn14's API into Convex, keep the existing vehicle selector backed by Convex even after the rest of the storefront flips to Shopify. Smallest UI risk, but contradicts the "Shopify as source of truth" goal.
+Phase 1b strategy: **fitments come from tags.**
+- Vehicle selector dropdowns: aggregate matching tag patterns (`YEAR-MAKE-MODEL-SUBMODEL-esi*`)
+- Vehicle filter page: `products(query: "tag:1980-toyota-land-cruiser-base*", first: 24)`
+- Per-product "Fits these vehicles": filter the product's `tags` array by the fitment-tag regex
+- Universal parts: tagged `UniversalFitment:Y` — show "Fits all vehicles" instead of a YMM list
+- Coverage gap mitigation (optional): fall back to descriptionHtml parsing when EasySearch hasn't tagged a product yet (the `<p>This Part Fits:</p>` HTML table is still there).
+
+No need to embed EasySearch's widget — the existing VehicleSelector UI design can be powered directly from tag queries.
