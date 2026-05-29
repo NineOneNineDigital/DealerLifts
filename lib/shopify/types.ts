@@ -95,3 +95,49 @@ export interface ShopifyCart {
   lines: { nodes: ShopifyCartLine[] };
   totalQuantity: number;
 }
+
+// ---------------------------------------------------------------------------
+// Customer Account API types
+// ---------------------------------------------------------------------------
+
+export interface CustomerAddress {
+  address1: string | null;
+  address2: string | null;
+  city: string | null;
+  company: string | null;
+  country: string | null;
+  firstName: string | null;
+  id: string;
+  lastName: string | null;
+  phone: string | null;
+  province: string | null;
+  zip: string | null;
+}
+
+export interface CustomerOrder {
+  financialStatus: string;
+  fulfillmentStatus: string;
+  id: string;
+  name: string;
+  processedAt: string;
+  totalPrice: Money;
+}
+
+export interface CustomerOrderConnection {
+  nodes: CustomerOrder[];
+  pageInfo: {
+    endCursor: string | null;
+    hasNextPage: boolean;
+  };
+}
+
+export interface Customer {
+  defaultAddress: CustomerAddress | null;
+  displayName: string;
+  email: string | null;
+  firstName: string | null;
+  id: string;
+  lastName: string | null;
+  orders: CustomerOrderConnection;
+  phone: string | null;
+}
