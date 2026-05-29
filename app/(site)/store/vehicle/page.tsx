@@ -6,18 +6,24 @@ import { listProductsByVehicle } from "@/lib/store/fitments-source";
 
 interface VehiclePageProps {
   searchParams: Promise<{
-    year?: string;
     make?: string;
     model?: string;
+    submodel?: string;
+    year?: string;
   }>;
 }
 
 export default async function VehiclePage({ searchParams }: VehiclePageProps) {
-  const { year, make, model } = await searchParams;
+  const { year, make, model, submodel } = await searchParams;
   const yearNum = year ? Number.parseInt(year, 10) : null;
   const products =
     yearNum && make && model
-      ? await listProductsByVehicle({ year: yearNum, make, model })
+      ? await listProductsByVehicle({
+          make,
+          model,
+          submodel: submodel || undefined,
+          year: yearNum,
+        })
       : [];
 
   return (
@@ -38,6 +44,7 @@ export default async function VehiclePage({ searchParams }: VehiclePageProps) {
         {yearNum && make && model && (
           <h2 className="mb-6 font-bold font-heading text-gray-900 text-xl">
             Parts for {yearNum} {make} {model}
+            {submodel ? ` ${submodel}` : ""}
           </h2>
         )}
 

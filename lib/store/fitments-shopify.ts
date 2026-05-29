@@ -126,6 +126,23 @@ export async function listYears(
   return Array.from(set).sort((a, b) => b - a);
 }
 
+export async function listSubmodels(
+  make: string,
+  model: string,
+  year: number
+): Promise<string[]> {
+  const fitments = await getAllFitmentsCached();
+  const m = make.toLowerCase().replace(/\s+/g, "-");
+  const mod = model.toLowerCase().replace(/\s+/g, "-");
+  const set = new Set<string>();
+  for (const f of fitments) {
+    if (f.make === m && f.model === mod && f.year === year) {
+      set.add(f.submodel);
+    }
+  }
+  return Array.from(set).sort().map(titleCase);
+}
+
 export async function getFitmentsForProduct(
   productSlug: string
 ): Promise<ParsedFitmentLite[]> {
@@ -149,9 +166,15 @@ export async function listProductsByVehicle(args: {
   year: number;
   make: string;
   model: string;
+  submodel?: string;
   limit?: number;
 }): Promise<NormalizedProduct[]> {
-  const prefix = vehicleTagPrefix(args.year, args.make, args.model);
+  const prefix = vehicleTagPrefix(
+    args.year,
+    args.make,
+    args.model,
+    args.submodel
+  );
   const page = await productsByVehicleTag(
     {
       first: args.limit ?? 24,

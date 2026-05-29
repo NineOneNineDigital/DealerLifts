@@ -12,6 +12,7 @@ import {
 export interface Vehicle {
   make: string;
   model: string;
+  submodel?: string;
   year: number;
 }
 
@@ -43,7 +44,13 @@ function readFromStorage(): Vehicle | null {
       typeof parsed.make === "string" &&
       typeof parsed.model === "string"
     ) {
-      return { year: parsed.year, make: parsed.make, model: parsed.model };
+      return {
+        make: parsed.make,
+        model: parsed.model,
+        submodel:
+          typeof parsed.submodel === "string" ? parsed.submodel : undefined,
+        year: parsed.year,
+      };
     }
   } catch {
     // ignored — fall through to null

@@ -69,9 +69,14 @@ export function parseFitmentsFromTags(tags: string[]): ParsedFitment[] {
 export function vehicleTagPrefix(
   year: number,
   make: string,
-  model: string
+  model: string,
+  submodel?: string
 ): string {
   const m = make.toLowerCase().replace(/\s+/g, "-");
   const mod = model.toLowerCase().replace(/\s+/g, "-");
+  if (submodel) {
+    const sub = submodel.toLowerCase().replace(/\s+/g, "-");
+    return `${year}-${m}-${mod}-${sub}-`;
+  }
   return `${year}-${m}-${mod}-`;
 }

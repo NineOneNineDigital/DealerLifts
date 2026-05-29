@@ -4,5 +4,6 @@ export {
   listMakes,
   listModels,
   listProductsByVehicle,
+  listSubmodels,
   listYears,
 } from "@/lib/store/fitments-shopify";
