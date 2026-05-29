@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Oxanium, Barlow, Barlow_Condensed } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/lib/store/cart-context";
-import { ClerkProvider } from "@clerk/nextjs";
 
 const oxanium = Oxanium({
   subsets: ["latin"],
@@ -62,9 +61,7 @@ export default function RootLayout({
       className={`${oxanium.variable} ${barlow.variable} ${barlowCondensed.variable}`}
     >
       <body className="font-sans antialiased bg-white text-gray-900">
-        <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}>
-          <CartProvider>{children}</CartProvider>
-        </ClerkProvider>
+        <CartProvider>{children}</CartProvider>
       </body>
     </html>
   );
