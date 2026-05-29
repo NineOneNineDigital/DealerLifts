@@ -24,21 +24,23 @@ async function handleFitmentsMode(
   year: string | null,
   productId: string | null
 ): Promise<NextResponse> {
-  if (mode === "makes") {
-    const makes = await listMakes();
-    return NextResponse.json({ makes, count: makes.length }, { status: 200 });
+  if (mode === "years") {
+    const years = await listYears();
+    return NextResponse.json({ years, count: years.length }, { status: 200 });
   }
-  if (mode === "models" && make) {
-    const models = await listModels(make);
+  if (mode === "makes" && year) {
+    const yearNum = Number.parseInt(year, 10);
+    const makes = await listMakes(yearNum);
     return NextResponse.json(
-      { make, models, count: models.length },
+      { year: yearNum, makes, count: makes.length },
       { status: 200 }
     );
   }
-  if (mode === "years" && make && model) {
-    const years = await listYears(make, model);
+  if (mode === "models" && year && make) {
+    const yearNum = Number.parseInt(year, 10);
+    const models = await listModels(yearNum, make);
     return NextResponse.json(
-      { make, model, years, count: years.length },
+      { year: yearNum, make, models, count: models.length },
       { status: 200 }
     );
   }
