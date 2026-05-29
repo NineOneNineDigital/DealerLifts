@@ -1,7 +1,6 @@
 "use client";
 
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import type { NormalizedBrand, NormalizedCategory } from "@/lib/store/types";
 
 interface FilterState {
   brandSlug?: string;
@@ -10,14 +9,13 @@ interface FilterState {
 }
 
 interface FilterSidebarProps {
+  brands: NormalizedBrand[];
+  categories: NormalizedCategory[];
   filters: FilterState;
   onChange: (filters: FilterState) => void;
 }
 
-export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
-  const brands = useQuery(api.brands.list);
-  const categories = useQuery(api.categories.listTopLevel);
-
+export function FilterSidebar({ brands, categories, filters, onChange }: FilterSidebarProps) {
   return (
     <aside className="space-y-6">
       <div>
@@ -34,8 +32,8 @@ export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
               All Categories
             </button>
           </li>
-          {categories?.map((cat) => (
-            <li key={cat._id}>
+          {categories.map((cat) => (
+            <li key={cat.id}>
               <button
                 type="button"
                 onClick={() => onChange({ ...filters, categorySlug: cat.slug })}
@@ -62,8 +60,8 @@ export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
               All Brands
             </button>
           </li>
-          {brands?.map((brand) => (
-            <li key={brand._id}>
+          {brands.map((brand) => (
+            <li key={brand.id}>
               <button
                 type="button"
                 onClick={() => onChange({ ...filters, brandSlug: brand.slug })}
