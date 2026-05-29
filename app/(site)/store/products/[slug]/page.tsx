@@ -1,55 +1,23 @@
-"use client";
-
-import { useQuery } from "convex/react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { notFound } from "next/navigation";
 import { FitmentPanel } from "@/components/store/FitmentPanel";
 import { ProductImages } from "@/components/store/ProductImages";
 import { ProductInfo } from "@/components/store/ProductInfo";
-import { api } from "@/convex/_generated/api";
+import { getFitmentsForProduct } from "@/lib/store/fitments-source";
+import { getProductBySlug } from "@/lib/store/source";
 
-export default function ProductPage() {
-  const { slug } = useParams<{ slug: string }>();
-  const product = useQuery(api.products.getBySlug, { slug });
-  const brand = useQuery(
-    api.brands.getById,
-    product?.brandId ? { id: product.brandId } : "skip"
-  );
-  const inventory = useQuery(
-    api.inventory.getByProductId,
-    product ? { productId: product._id } : "skip"
-  );
+interface ProductPageProps {
+  params: Promise<{ slug: string }>;
+}
 
-  if (product === undefined) {
-    return (
-      <div className="pt-32 md:pt-40">
-        <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
-          <p className="text-gray-400">Loading product...</p>
-        </div>
-      </div>
-    );
+export default async function ProductDetailPage({ params }: ProductPageProps) {
+  const { slug } = await params;
+  const product = await getProductBySlug(slug);
+  if (!product) {
+    notFound();
   }
 
-  if (product === null) {
-    return (
-      <div className="pt-32 md:pt-40">
-        <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
-          <h1 className="mb-2 font-bold font-heading text-2xl text-gray-900">
-            Product Not Found
-          </h1>
-          <p className="mb-6 text-gray-500">
-            The product you&apos;re looking for doesn&apos;t exist.
-          </p>
-          <Link
-            className="font-medium text-[#077BFF] text-sm hover:underline"
-            href="/store"
-          >
-            Back to Store
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const fitments = await getFitmentsForProduct(product.slug);
 
   return (
     <div className="pt-32 md:pt-40">
@@ -63,15 +31,15 @@ export default function ProductPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">
-          <ProductImages images={product.images} />
+          <ProductImages images={product.images} title={product.title} />
           <ProductInfo
-            brandName={brand?.name}
-            inStock={inventory?.isInStock ?? true}
+            brandName={product.brandName}
+            inStock={product.isActive}
             product={product}
           />
         </div>
 
-        <FitmentPanel productId={product._id} />
+        <FitmentPanel fitments={fitments} />
       </div>
     </div>
   );
