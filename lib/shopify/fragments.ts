@@ -41,20 +41,6 @@ export const PRODUCT_FRAGMENT = /* GraphQL */ `
         }
       }
     }
-    metafields(
-      identifiers: [
-        { namespace: "custom", key: "fitments" }
-        { namespace: "custom", key: "fitment" }
-        { namespace: "turn14", key: "fitments" }
-        { namespace: "turn14", key: "vehicles" }
-        { namespace: "specifications", key: "fitments" }
-      ]
-    ) {
-      namespace
-      key
-      type
-      value
-    }
   }
 `;
 

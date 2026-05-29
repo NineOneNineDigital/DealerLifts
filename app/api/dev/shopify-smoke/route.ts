@@ -99,15 +99,6 @@ export async function GET(req: Request) {
       tags: p.tags,
       variantCount: p.variants.nodes.length,
       firstVariantSku: p.variants.nodes[0]?.sku ?? null,
-      metafieldsFound: p.metafields
-        .filter((m): m is NonNullable<typeof m> => m !== null)
-        .map((m) => ({
-          namespace: m.namespace,
-          key: m.key,
-          type: m.type,
-          valuePreview:
-            m.value.length > 200 ? `${m.value.slice(0, 200)}…` : m.value,
-        })),
     }));
 
     return NextResponse.json(

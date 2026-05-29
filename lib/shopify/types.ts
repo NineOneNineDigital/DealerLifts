@@ -33,9 +33,6 @@ export interface ShopifyProduct {
   handle: string;
   id: string;
   images: { nodes: ShopifyImage[] };
-  // `metafields` returns null for identifiers that don't exist on the product,
-  // so the array is sparse and entries can be null.
-  metafields: (ShopifyMetafield | null)[];
   priceRange: { minVariantPrice: Money };
   productType: string;
   tags: string[];
