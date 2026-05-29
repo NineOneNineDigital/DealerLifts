@@ -118,7 +118,7 @@ export async function buildAuthorizationUrl(opts: {
     code_challenge_method: "S256",
     redirect_uri: callbackUrl(appUrl),
     response_type: "code",
-    scope: "openid email https://api.customers.com/auth/customer.graphql",
+    scope: "openid email customer-account-api:full",
     state,
   });
 
