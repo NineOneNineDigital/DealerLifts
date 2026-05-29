@@ -1,60 +1,69 @@
 "use client";
 
-import Image from "next/image";
-import { PriceDisplay } from "./PriceDisplay";
-import { useCart } from "@/hooks/useCart";
-import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { IconTrash } from "@tabler/icons-react";
+import Image from "next/image";
+import { useCart } from "@/hooks/useCart";
+import type { NormalizedCartItem } from "@/lib/store/types";
+import { PriceDisplay } from "./PriceDisplay";
 
 interface CartItemProps {
-  id: Id<"cartItems">;
-  product: Doc<"products">;
-  quantity: number;
+  item: NormalizedCartItem;
 }
 
-export function CartItem({ id, product, quantity }: CartItemProps) {
+export function CartItem({ item }: CartItemProps) {
   const { updateQuantity, removeItem } = useCart();
-  const price = product.mapPrice || product.retailPrice || 0;
-  const image = product.thumbnail || product.images[0];
 
   return (
-    <div className="flex gap-4 py-4 border-b border-gray-100">
-      <div className="relative w-16 h-16 bg-gray-50 rounded-lg flex-shrink-0 overflow-hidden">
-        {image ? (
-          <Image src={image} alt={product.title} fill className="object-contain p-1" sizes="64px" />
+    <div className="flex gap-4 border-gray-100 border-b py-4">
+      <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gray-50">
+        {item.productImage ? (
+          <Image
+            alt={item.productTitle}
+            className="object-contain p-1"
+            fill
+            sizes="64px"
+            src={item.productImage}
+          />
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-300 text-xs">
+          <div className="flex h-full items-center justify-center text-gray-300 text-xs">
             No img
           </div>
         )}
       </div>
-      <div className="flex-1 min-w-0">
-        <h4 className="text-sm font-medium text-gray-900 line-clamp-1">{product.title}</h4>
-        <p className="text-xs text-gray-400">{product.partNumber}</p>
-        <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center border border-gray-200 rounded">
+      <div className="min-w-0 flex-1">
+        <h4 className="line-clamp-1 font-medium text-gray-900 text-sm">
+          {item.productTitle}
+        </h4>
+        <p className="text-gray-400 text-xs">{item.partNumber}</p>
+        <div className="mt-2 flex items-center justify-between">
+          <div className="flex items-center rounded border border-gray-200">
             <button
+              className="px-2 py-1 text-gray-500 text-xs hover:text-gray-900"
+              onClick={() => updateQuantity(item.id, item.quantity - 1)}
               type="button"
-              onClick={() => updateQuantity(id, quantity - 1)}
-              className="px-2 py-1 text-gray-500 hover:text-gray-900 text-xs"
             >
               -
             </button>
-            <span className="px-2 py-1 text-xs font-medium">{quantity}</span>
+            <span className="px-2 py-1 font-medium text-xs">
+              {item.quantity}
+            </span>
             <button
+              className="px-2 py-1 text-gray-500 text-xs hover:text-gray-900"
+              onClick={() => updateQuantity(item.id, item.quantity + 1)}
               type="button"
-              onClick={() => updateQuantity(id, quantity + 1)}
-              className="px-2 py-1 text-gray-500 hover:text-gray-900 text-xs"
             >
               +
             </button>
           </div>
           <div className="flex items-center gap-3">
-            <PriceDisplay cents={price * quantity} className="text-sm font-bold text-gray-900" />
+            <PriceDisplay
+              cents={item.priceCents * item.quantity}
+              className="font-bold text-gray-900 text-sm"
+            />
             <button
+              className="text-gray-400 transition-colors hover:text-red-500"
+              onClick={() => removeItem(item.id)}
               type="button"
-              onClick={() => removeItem(id)}
-              className="text-gray-400 hover:text-red-500 transition-colors"
             >
               <IconTrash size={16} />
             </button>
