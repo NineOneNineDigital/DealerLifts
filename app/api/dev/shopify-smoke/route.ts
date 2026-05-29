@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { listProducts, productByHandle } from "@/lib/shopify/queries/products";
 import { getCart } from "@/lib/store/cart";
 import {
+  getFitmentsForProduct,
+  listMakes,
+  listModels,
+  listProductsByVehicle,
+  listYears,
+} from "@/lib/store/fitments-source";
+import {
   getProductBySlug,
   getStorefrontSource,
   listBrands,
@@ -9,6 +16,77 @@ import {
   listNewProducts,
   listTopLevelCategories,
 } from "@/lib/store/source";
+
+async function handleFitmentsMode(
+  mode: string,
+  make: string | null,
+  model: string | null,
+  year: string | null,
+  productId: string | null
+): Promise<NextResponse> {
+  if (mode === "makes") {
+    const makes = await listMakes();
+    return NextResponse.json({ makes, count: makes.length }, { status: 200 });
+  }
+  if (mode === "models" && make) {
+    const models = await listModels(make);
+    return NextResponse.json(
+      { make, models, count: models.length },
+      { status: 200 }
+    );
+  }
+  if (mode === "years" && make && model) {
+    const years = await listYears(make, model);
+    return NextResponse.json(
+      { make, model, years, count: years.length },
+      { status: 200 }
+    );
+  }
+  if (mode === "products" && make && model && year) {
+    const yearNum = Number.parseInt(year, 10);
+    const products = await listProductsByVehicle({
+      make,
+      model,
+      year: yearNum,
+    });
+    return NextResponse.json(
+      {
+        year: yearNum,
+        make,
+        model,
+        count: products.length,
+        products: products.map((p) => ({
+          slug: p.slug,
+          title: p.title,
+          source: p.source,
+        })),
+      },
+      { status: 200 }
+    );
+  }
+  if (mode === "product" && productId) {
+    const fitments = await getFitmentsForProduct(productId);
+    return NextResponse.json(
+      { productId, count: fitments.length, fitments },
+      { status: 200 }
+    );
+  }
+  return NextResponse.json(
+    {
+      error: "Invalid fitments mode",
+      usage: {
+        makes: "/api/dev/shopify-smoke?fitments=makes",
+        models: "/api/dev/shopify-smoke?fitments=models&make=Toyota",
+        years: "/api/dev/shopify-smoke?fitments=years&make=Toyota&model=Tacoma",
+        products:
+          "/api/dev/shopify-smoke?fitments=products&make=Toyota&model=Tacoma&year=2024",
+        product:
+          "/api/dev/shopify-smoke?fitments=product&productId=<slug-or-id>",
+      },
+    },
+    { status: 400 }
+  );
+}
 
 // Dev-only smoke endpoint. Refuses to respond in production.
 export async function GET(req: Request) {
@@ -20,8 +98,23 @@ export async function GET(req: Request) {
   const handle = url.searchParams.get("handle");
   const adapterMode = url.searchParams.get("adapter") === "1";
   const cartMode = url.searchParams.get("cart") === "1";
+  const fitmentsMode = url.searchParams.get("fitments");
+  const fitmentMake = url.searchParams.get("make");
+  const fitmentModel = url.searchParams.get("model");
+  const fitmentYear = url.searchParams.get("year");
+  const fitmentProductId = url.searchParams.get("productId");
 
   try {
+    if (fitmentsMode) {
+      return await handleFitmentsMode(
+        fitmentsMode,
+        fitmentMake,
+        fitmentModel,
+        fitmentYear,
+        fitmentProductId
+      );
+    }
+
     if (cartMode) {
       const cart = await getCart();
       return NextResponse.json(
