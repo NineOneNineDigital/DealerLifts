@@ -19,6 +19,7 @@ import { BuildTypeGrid } from "@/components/store/BuildTypeGrid";
 import { ProductCard } from "@/components/store/ProductCard";
 import { ProductGrid } from "@/components/store/ProductGrid";
 import { StoreHero } from "@/components/store/StoreHero";
+import { VehicleSelector } from "@/components/store/VehicleSelector";
 import {
   listBrands,
   listFeaturedProducts,
@@ -111,6 +112,9 @@ export default async function StorePage() {
 
       <div className="bg-gray-50">
         <div className="mx-auto max-w-7xl space-y-16 px-4 py-12 sm:px-6 lg:px-8">
+          {/* Vehicle Selector */}
+          <VehicleSelector />
+
           {/* Shop by Build Type */}
           <BuildTypeGrid />
 
