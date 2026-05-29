@@ -1,9 +1,12 @@
 "use client";
 
-import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { api } from "@/convex/_generated/api";
+import {
+  listMakesAction,
+  listModelsAction,
+  listYearsAction,
+} from "@/lib/store/fitment-actions";
 import { useSelectedVehicle } from "@/lib/vehicle/VehicleProvider";
 
 export function VehicleSelector() {
@@ -12,6 +15,10 @@ export function VehicleSelector() {
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
+
+  const [makes, setMakes] = useState<string[]>([]);
+  const [models, setModels] = useState<string[]>([]);
+  const [years, setYears] = useState<number[]>([]);
 
   // Prefill from the persistent selection so the form shows the current vehicle
   useEffect(() => {
@@ -22,12 +29,29 @@ export function VehicleSelector() {
     }
   }, [vehicle]);
 
-  const makes = useQuery(api.fitments.getMakes);
-  const models = useQuery(api.fitments.getModels, make ? { make } : "skip");
-  const years = useQuery(
-    api.fitments.getYears,
-    make && model ? { make, model } : "skip"
-  );
+  useEffect(() => {
+    listMakesAction().then(setMakes);
+  }, []);
+
+  useEffect(() => {
+    if (make) {
+      listModelsAction(make).then(setModels);
+      setModel("");
+      setYear("");
+      setYears([]);
+    } else {
+      setModels([]);
+    }
+  }, [make]);
+
+  useEffect(() => {
+    if (make && model) {
+      listYearsAction(make, model).then(setYears);
+      setYear("");
+    } else {
+      setYears([]);
+    }
+  }, [make, model]);
 
   const handleSearch = () => {
     if (!(year && make && model)) {
@@ -43,7 +67,7 @@ export function VehicleSelector() {
     );
   };
 
-  const noMakesLoaded = makes !== undefined && makes.length === 0;
+  const noMakesLoaded = makes.length === 0;
 
   return (
     <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-5">
@@ -76,7 +100,7 @@ export function VehicleSelector() {
           value={make}
         >
           <option value="">Select Make</option>
-          {makes?.map((m) => (
+          {makes.map((m) => (
             <option key={m} value={m}>
               {m}
             </option>
@@ -92,7 +116,7 @@ export function VehicleSelector() {
           value={model}
         >
           <option value="">Select Model</option>
-          {models?.map((m) => (
+          {models.map((m) => (
             <option key={m} value={m}>
               {m}
             </option>
@@ -105,7 +129,7 @@ export function VehicleSelector() {
           value={year}
         >
           <option value="">Select Year</option>
-          {years?.map((y) => (
+          {years.map((y) => (
             <option key={y} value={y}>
               {y}
             </option>
