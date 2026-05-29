@@ -18,6 +18,16 @@ const EXPIRES_AT_COOKIE = "customer_token_expires_at";
 const SHORT_MAX_AGE = 60 * 10; // 10 minutes — OAuth state lives briefly
 const LONG_MAX_AGE = 60 * 60 * 24 * 30; // 30 days — refresh token lifetime
 
+/**
+ * Cookies are sent across the Shopify-hosted login (cross-site redirect).
+ * Browsers require `Secure` when serving over HTTPS, otherwise Set-Cookie can
+ * be silently dropped. The HTTPS tunnel (cloudflared) and production both
+ * serve over HTTPS — set `secure: true` unconditionally and skip it only
+ * for plain http://localhost dev (which never receives Shopify redirects
+ * anyway because Shopify rejects http redirect URIs).
+ */
+const SECURE = process.env.NEXT_PUBLIC_SITE_URL?.startsWith("https://") ?? false;
+
 // ---------------------------------------------------------------------------
 // Auth state (PKCE flow — written at login start, cleared at callback)
 // ---------------------------------------------------------------------------
@@ -29,9 +39,10 @@ export async function setAuthState(
   const store = await cookies();
   const common = {
     httpOnly: true,
-    sameSite: "lax" as const,
     maxAge: SHORT_MAX_AGE,
     path: "/",
+    sameSite: "lax" as const,
+    secure: SECURE,
   };
   store.set({ name: STATE_COOKIE, value: state, ...common });
   store.set({ name: VERIFIER_COOKIE, value: verifier, ...common });
@@ -70,9 +81,10 @@ export async function setCustomerTokens(tokens: CustomerTokens): Promise<void> {
   const store = await cookies();
   const common = {
     httpOnly: true,
-    sameSite: "lax" as const,
     maxAge: LONG_MAX_AGE,
     path: "/",
+    sameSite: "lax" as const,
+    secure: SECURE,
   };
   store.set({
     name: ACCESS_TOKEN_COOKIE,
