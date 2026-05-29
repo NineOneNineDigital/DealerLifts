@@ -72,3 +72,39 @@ export async function listCollections(
   );
   return data.collections;
 }
+
+// ---------------------------------------------------------------------------
+// Brand listing — includes a minimal "has any product" probe so the storefront
+// can filter out empty brand collections (e.g. brands the Turn14 integration
+// has not yet synced any products for).
+// ---------------------------------------------------------------------------
+
+const LIST_BRANDS_QUERY = /* GraphQL */ `
+  ${COLLECTION_FRAGMENT}
+  query ListBrandsWithProducts($first: Int!) {
+    collections(first: $first) {
+      nodes {
+        ...CollectionFields
+        products(first: 1) {
+          nodes {
+            id
+          }
+        }
+      }
+    }
+  }
+`;
+
+export type BrandWithProductsNode = ShopifyCollection & {
+  products: { nodes: { id: string }[] };
+};
+
+export async function listBrandsWithProducts(
+  first = 100,
+  options?: FetchOptions
+): Promise<BrandWithProductsNode[]> {
+  const data = await shopifyFetch<{
+    collections: { nodes: BrandWithProductsNode[] };
+  }>(LIST_BRANDS_QUERY, { first }, options);
+  return data.collections.nodes;
+}

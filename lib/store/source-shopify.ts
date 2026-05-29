@@ -1,5 +1,6 @@
 import {
   collectionByHandle,
+  listBrandsWithProducts,
   listCollections,
 } from "@/lib/shopify/queries/collections";
 import {
@@ -110,8 +111,23 @@ export async function searchProducts(
 }
 
 export async function listBrands(): Promise<NormalizedBrand[]> {
-  const page = await listCollections({ first: 100 }, NO_STORE);
-  return page.nodes.map(mapCollectionToBrand);
+  const nodes = await listBrandsWithProducts(100, NO_STORE);
+  return nodes
+    .filter((c) => {
+      // Exclude top-level category collections (they use the `is_top_level`
+      // metafield to opt in to the category section; they should not show in
+      // the brand strip).
+      const flag = c.metafields.find(
+        (m) => m?.namespace === "custom" && m.key === "is_top_level"
+      );
+      if (flag?.value === "true") {
+        return false;
+      }
+      // Require at least one product synced — Turn14 brands the merchant has
+      // not yet accepted produce empty collections that shouldn't surface.
+      return c.products.nodes.length > 0;
+    })
+    .map(mapCollectionToBrand);
 }
 
 export async function getBrandBySlug(
