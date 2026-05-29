@@ -1,14 +1,13 @@
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import type { NormalizedBrand } from "@/lib/store/types";
 
-export function BrandGrid() {
-  const brands = useQuery(api.brands.list);
+interface BrandGridProps {
+  brands: NormalizedBrand[];
+}
 
-  if (!brands || brands.length === 0) return null;
+export function BrandGrid({ brands }: BrandGridProps) {
+  if (brands.length === 0) return null;
 
   return (
     <section>
@@ -16,7 +15,7 @@ export function BrandGrid() {
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
         {brands.map((brand) => (
           <Link
-            key={brand._id}
+            key={brand.id}
             href={`/store/brands/${brand.slug}`}
             className="flex items-center justify-center p-4 bg-white border border-gray-200 rounded-xl hover:border-[#077BFF] hover:shadow-sm transition-all aspect-square"
           >
