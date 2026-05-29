@@ -14,12 +14,9 @@ import {
   clearCartAction,
   getCartAction,
   removeLineAction,
-  syncSessionAction,
   updateLineAction,
 } from "@/lib/store/cart-actions";
 import type { NormalizedCart } from "@/lib/store/types";
-
-const STORAGE_KEY = "dl-session-id";
 
 const EMPTY_CART: NormalizedCart = {
   checkoutUrl: null,
@@ -52,22 +49,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  // On mount: sync the legacy localStorage session ID into the cookie the
-  // Convex cart adapter reads, then fetch the cart. This bridges the existing
-  // sessionId-keyed Convex cart and checkout flow with the new cookie-based
-  // session.
   useEffect(() => {
-    let sessionId = window.localStorage.getItem(STORAGE_KEY);
-    if (!sessionId) {
-      sessionId = crypto.randomUUID();
-      window.localStorage.setItem(STORAGE_KEY, sessionId);
-    }
-    startTransition(async () => {
-      await syncSessionAction(sessionId);
-      const fresh = await getCartAction();
-      setCart(fresh);
-    });
-  }, []);
+    refresh();
+  }, [refresh]);
 
   const addItem = useCallback((merchandiseId: string, quantity = 1) => {
     startTransition(async () => {
