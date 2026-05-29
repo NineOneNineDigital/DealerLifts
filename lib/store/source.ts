@@ -69,10 +69,10 @@ export function getBrandBySlug(slug: string) {
     : convexGetBrandBySlug(slug);
 }
 
-export function listProductsByBrand(brandId: string, limit?: number) {
+export function listProductsByBrand(brandSlug: string, limit?: number) {
   return getSource() === "shopify"
-    ? shopifyListProductsByBrand(brandId, limit)
-    : convexListProductsByBrand(brandId, limit);
+    ? shopifyListProductsByBrand(brandSlug, limit)
+    : convexListProductsByBrand(brandSlug, limit);
 }
 
 export function listTopLevelCategories() {
@@ -87,10 +87,10 @@ export function getCategoryBySlug(slug: string) {
     : convexGetCategoryBySlug(slug);
 }
 
-export function listProductsByCategory(categoryId: string, limit?: number) {
+export function listProductsByCategory(categorySlug: string, limit?: number) {
   return getSource() === "shopify"
-    ? shopifyListProductsByCategory(categoryId, limit)
-    : convexListProductsByCategory(categoryId, limit);
+    ? shopifyListProductsByCategory(categorySlug, limit)
+    : convexListProductsByCategory(categorySlug, limit);
 }
 
 export function getInventoryByProductId(productId: string) {

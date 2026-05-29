@@ -44,7 +44,7 @@ function mapProduct(p: ShopifyProduct): NormalizedProduct {
     images: Array.from(new Set(allImages)),
     isActive: variant?.availableForSale ?? false,
     isFeatured: p.tags.includes("featured"),
-    mapPrice: priceCents,
+    mapPrice: null,
     partNumber: variant?.sku ?? p.handle,
     retailPrice: priceCents,
     slug: p.handle,
@@ -81,11 +81,11 @@ function mapCollectionToCategory(c: ShopifyCollection): NormalizedCategory {
 export async function listFeaturedProducts(
   limit = 8
 ): Promise<NormalizedProduct[]> {
-  const page = await listProducts({ first: limit }, NO_STORE);
-  return page.nodes
-    .filter((p) => p.tags.includes("featured"))
-    .slice(0, limit)
-    .map(mapProduct);
+  const page = await shopifySearchProducts(
+    { query: "tag:featured", first: limit },
+    NO_STORE
+  );
+  return page.nodes.map(mapProduct);
 }
 
 export async function listNewProducts(limit = 4): Promise<NormalizedProduct[]> {
@@ -121,16 +121,24 @@ export async function getBrandBySlug(
 }
 
 export async function listProductsByBrand(
-  brandId: string,
+  brandSlug: string,
   limit = 24
 ): Promise<NormalizedProduct[]> {
   const c = await collectionByHandle(
-    { handle: brandId, first: limit },
+    { handle: brandSlug, first: limit },
     NO_STORE
   );
   return c?.products.nodes.map(mapProduct) ?? [];
 }
 
+/**
+ * Returns collections whose `custom.is_top_level` metafield is set to
+ * the string `"true"`. Set this metafield in Shopify Admin on the
+ * collections you want to surface as top-level categories — otherwise
+ * this function returns an empty array. The Convex equivalent uses
+ * `parentId === undefined`, which is a structural condition with no
+ * setup required.
+ */
 export async function listTopLevelCategories(): Promise<NormalizedCategory[]> {
   const page = await listCollections({ first: 100 }, NO_STORE);
   return page.nodes
@@ -151,11 +159,11 @@ export async function getCategoryBySlug(
 }
 
 export async function listProductsByCategory(
-  categoryId: string,
+  categorySlug: string,
   limit = 24
 ): Promise<NormalizedProduct[]> {
   const c = await collectionByHandle(
-    { handle: categoryId, first: limit },
+    { handle: categorySlug, first: limit },
     NO_STORE
   );
   return c?.products.nodes.map(mapProduct) ?? [];

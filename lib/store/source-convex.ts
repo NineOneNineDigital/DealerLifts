@@ -108,12 +108,16 @@ export async function getBrandBySlug(
 }
 
 export async function listProductsByBrand(
-  brandId: string,
+  brandSlug: string,
   limit?: number
 ): Promise<NormalizedProduct[]> {
   const client = getConvexServerClient();
+  const brand = await client.query(api.brands.getBySlug, { slug: brandSlug });
+  if (!brand) {
+    return [];
+  }
   const docs = await client.query(api.products.listByBrand, {
-    brandId: brandId as Id<"brands">,
+    brandId: brand._id,
     limit,
   });
   return docs.map((d) => mapProduct(d));
@@ -134,12 +138,18 @@ export async function getCategoryBySlug(
 }
 
 export async function listProductsByCategory(
-  categoryId: string,
+  categorySlug: string,
   limit?: number
 ): Promise<NormalizedProduct[]> {
   const client = getConvexServerClient();
+  const category = await client.query(api.categories.getBySlug, {
+    slug: categorySlug,
+  });
+  if (!category) {
+    return [];
+  }
   const docs = await client.query(api.products.listByCategory, {
-    categoryId: categoryId as Id<"categories">,
+    categoryId: category._id,
     limit,
   });
   return docs.map((d) => mapProduct(d));
