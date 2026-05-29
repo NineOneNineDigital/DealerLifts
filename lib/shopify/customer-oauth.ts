@@ -9,9 +9,19 @@
 // Config
 // ---------------------------------------------------------------------------
 
+const RE_TRAILING_SLASH = /\/+$/;
+
+function stripTrailingSlash(url: string | undefined): string | undefined {
+  return url?.replace(RE_TRAILING_SLASH, "");
+}
+
 const CLIENT_ID = process.env.SHOPIFY_CUSTOMER_ACCOUNT_API_CLIENT_ID;
-const AUTH_URL = process.env.SHOPIFY_CUSTOMER_ACCOUNT_AUTH_URL;
-const APP_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const AUTH_URL = stripTrailingSlash(
+  process.env.SHOPIFY_CUSTOMER_ACCOUNT_AUTH_URL
+);
+const APP_URL =
+  stripTrailingSlash(process.env.NEXT_PUBLIC_SITE_URL) ??
+  "http://localhost:3000";
 
 // Top-level regexes for base64url encoding (avoids per-call recompilation)
 const RE_PLUS = /\+/g;
