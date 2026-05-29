@@ -9,30 +9,33 @@
 // Config
 // ---------------------------------------------------------------------------
 
-const CLIENT_ID = process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_ID;
-const CUSTOMER_ACCOUNT_API_URL = process.env.SHOPIFY_CUSTOMER_ACCOUNT_API_URL;
-const APP_URL =
-  process.env.NEXT_PUBLIC_SHOPIFY_APP_URL ?? "http://localhost:3000";
+const CLIENT_ID = process.env.SHOPIFY_CUSTOMER_ACCOUNT_API_CLIENT_ID;
+const AUTH_URL = process.env.SHOPIFY_CUSTOMER_ACCOUNT_AUTH_URL;
+const APP_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 // Top-level regexes for base64url encoding (avoids per-call recompilation)
 const RE_PLUS = /\+/g;
 const RE_SLASH = /\//g;
 const RE_TRAILING_EQ = /=+$/;
 
-function resolveConfig(): { clientId: string; apiUrl: string; appUrl: string } {
+function resolveConfig(): {
+  appUrl: string;
+  authUrl: string;
+  clientId: string;
+} {
   if (!CLIENT_ID) {
     throw new Error(
-      "NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_ID is not set. Add it to .env.local."
+      "SHOPIFY_CUSTOMER_ACCOUNT_API_CLIENT_ID is not set. Add it to .env.local."
     );
   }
-  if (!CUSTOMER_ACCOUNT_API_URL) {
+  if (!AUTH_URL) {
     throw new Error(
-      "SHOPIFY_CUSTOMER_ACCOUNT_API_URL is not set. Add it to .env.local."
+      "SHOPIFY_CUSTOMER_ACCOUNT_AUTH_URL is not set. Add it to .env.local."
     );
   }
   return {
-    apiUrl: CUSTOMER_ACCOUNT_API_URL,
     appUrl: APP_URL,
+    authUrl: AUTH_URL,
     clientId: CLIENT_ID,
   };
 }
@@ -83,7 +86,7 @@ function base64UrlEncode(bytes: Uint8Array): string {
 /** The redirect URI that Shopify will send the code to after login. */
 export function callbackUrl(appUrl?: string): string {
   const base = appUrl ?? APP_URL;
-  return `${base}/api/auth/callback`;
+  return `${base}/api/auth/shopify/callback`;
 }
 
 /**
@@ -93,7 +96,7 @@ export function callbackUrl(appUrl?: string): string {
 export async function buildAuthorizationUrl(opts: {
   nonce?: string;
 }): Promise<{ url: string; state: string; verifier: string }> {
-  const { apiUrl, appUrl, clientId } = resolveConfig();
+  const { appUrl, authUrl, clientId } = resolveConfig();
 
   const state = opts.nonce ?? generateState();
   const verifier = generateCodeVerifier();
@@ -109,7 +112,7 @@ export async function buildAuthorizationUrl(opts: {
     state,
   });
 
-  const url = `${apiUrl}/oauth/authorize?${params.toString()}`;
+  const url = `${authUrl}/oauth/authorize?${params.toString()}`;
   return { state, url, verifier };
 }
 
@@ -133,7 +136,7 @@ export async function exchangeCodeForTokens(opts: {
   code: string;
   verifier: string;
 }): Promise<TokenResponse> {
-  const { apiUrl, appUrl, clientId } = resolveConfig();
+  const { appUrl, authUrl, clientId } = resolveConfig();
 
   const body = new URLSearchParams({
     client_id: clientId,
@@ -143,7 +146,7 @@ export async function exchangeCodeForTokens(opts: {
     redirect_uri: callbackUrl(appUrl),
   });
 
-  const res = await fetch(`${apiUrl}/oauth/token`, {
+  const res = await fetch(`${authUrl}/oauth/token`, {
     body: body.toString(),
     cache: "no-store",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -167,7 +170,7 @@ export async function exchangeCodeForTokens(opts: {
 export async function refreshAccessToken(
   refreshToken: string
 ): Promise<TokenResponse> {
-  const { apiUrl, clientId } = resolveConfig();
+  const { authUrl, clientId } = resolveConfig();
 
   const body = new URLSearchParams({
     client_id: clientId,
@@ -175,7 +178,7 @@ export async function refreshAccessToken(
     refresh_token: refreshToken,
   });
 
-  const res = await fetch(`${apiUrl}/oauth/token`, {
+  const res = await fetch(`${authUrl}/oauth/token`, {
     body: body.toString(),
     cache: "no-store",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -197,7 +200,7 @@ export async function refreshAccessToken(
  * Redirect the user here to clear their Shopify session.
  */
 export function buildLogoutUrl(opts: { idToken?: string } = {}): string {
-  const { apiUrl, appUrl, clientId } = resolveConfig();
+  const { appUrl, authUrl, clientId } = resolveConfig();
 
   const params = new URLSearchParams({
     client_id: clientId,
@@ -208,5 +211,5 @@ export function buildLogoutUrl(opts: { idToken?: string } = {}): string {
     params.set("id_token_hint", opts.idToken);
   }
 
-  return `${apiUrl}/oauth/logout?${params.toString()}`;
+  return `${authUrl}/logout?${params.toString()}`;
 }
