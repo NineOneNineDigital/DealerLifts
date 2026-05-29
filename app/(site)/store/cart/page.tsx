@@ -1,50 +1,49 @@
 "use client";
 
-import { useCart } from "@/hooks/useCart";
+import Link from "next/link";
 import { CartItem } from "@/components/store/CartItem";
 import { CartSummary } from "@/components/store/CartSummary";
-import Link from "next/link";
+import { useCart } from "@/hooks/useCart";
 
 export default function CartPage() {
-  const { items, itemCount, subtotal } = useCart();
+  const { items, itemCount, subtotal, checkoutUrl } = useCart();
 
   return (
     <div className="pt-32 md:pt-40">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-          <Link href="/store" className="hover:text-gray-900">Store</Link>
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-6 flex items-center gap-2 text-gray-400 text-sm">
+          <Link className="hover:text-gray-900" href="/store">
+            Store
+          </Link>
           <span>/</span>
           <span className="text-gray-900">Cart</span>
         </div>
 
-        <h1 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-8">
+        <h1 className="mb-8 font-bold font-heading text-2xl text-gray-900 md:text-3xl">
           Your Cart
         </h1>
 
         {items.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-gray-500 mb-4">Your cart is empty</p>
+          <div className="py-16 text-center">
+            <p className="mb-4 text-gray-500">Your cart is empty</p>
             <Link
+              className="font-medium text-[#077BFF] text-sm hover:underline"
               href="/store"
-              className="text-[#077BFF] hover:underline text-sm font-medium"
             >
               Continue Shopping
             </Link>
           </div>
         ) : (
           <div className="space-y-0">
-            {items.map((item) =>
-              item.product ? (
-                <CartItem
-                  key={item._id}
-                  id={item._id}
-                  product={item.product}
-                  quantity={item.quantity}
-                />
-              ) : null,
-            )}
+            {items.map((item) => (
+              <CartItem item={item} key={item.id} />
+            ))}
             <div className="mt-6">
-              <CartSummary subtotal={subtotal} itemCount={itemCount} />
+              <CartSummary
+                checkoutUrl={checkoutUrl}
+                itemCount={itemCount}
+                subtotal={subtotal}
+              />
             </div>
           </div>
         )}
