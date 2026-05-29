@@ -40,7 +40,7 @@ function mapProduct(p: ShopifyProduct): NormalizedProduct {
     brandName: p.vendor || null,
     categoryId: null,
     description: p.description || null,
-    id: p.id,
+    id: variant?.id ?? p.id,
     images: Array.from(new Set(allImages)),
     isActive: variant?.availableForSale ?? false,
     isFeatured: p.tags.includes("featured"),
