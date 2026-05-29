@@ -15,19 +15,24 @@ interface FilterSidebarProps {
   onChange: (filters: FilterState) => void;
 }
 
-export function FilterSidebar({ brands, categories, filters, onChange }: FilterSidebarProps) {
+export function FilterSidebar({
+  brands,
+  categories,
+  filters,
+  onChange,
+}: FilterSidebarProps) {
   return (
     <aside className="space-y-6">
       <div>
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
+        <h4 className="mb-3 font-semibold text-gray-400 text-xs uppercase tracking-wider">
           Category
         </h4>
         <ul className="space-y-1.5">
           <li>
             <button
-              type="button"
+              className={`text-sm ${filters.categorySlug ? "text-gray-600 hover:text-gray-900" : "font-medium text-[#077BFF]"}`}
               onClick={() => onChange({ ...filters, categorySlug: undefined })}
-              className={`text-sm ${!filters.categorySlug ? "text-[#077BFF] font-medium" : "text-gray-600 hover:text-gray-900"}`}
+              type="button"
             >
               All Categories
             </button>
@@ -35,9 +40,9 @@ export function FilterSidebar({ brands, categories, filters, onChange }: FilterS
           {categories.map((cat) => (
             <li key={cat.id}>
               <button
-                type="button"
+                className={`text-sm ${filters.categorySlug === cat.slug ? "font-medium text-[#077BFF]" : "text-gray-600 hover:text-gray-900"}`}
                 onClick={() => onChange({ ...filters, categorySlug: cat.slug })}
-                className={`text-sm ${filters.categorySlug === cat.slug ? "text-[#077BFF] font-medium" : "text-gray-600 hover:text-gray-900"}`}
+                type="button"
               >
                 {cat.name}
               </button>
@@ -47,15 +52,15 @@ export function FilterSidebar({ brands, categories, filters, onChange }: FilterS
       </div>
 
       <div>
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
+        <h4 className="mb-3 font-semibold text-gray-400 text-xs uppercase tracking-wider">
           Brand
         </h4>
         <ul className="space-y-1.5">
           <li>
             <button
-              type="button"
+              className={`text-sm ${filters.brandSlug ? "text-gray-600 hover:text-gray-900" : "font-medium text-[#077BFF]"}`}
               onClick={() => onChange({ ...filters, brandSlug: undefined })}
-              className={`text-sm ${!filters.brandSlug ? "text-[#077BFF] font-medium" : "text-gray-600 hover:text-gray-900"}`}
+              type="button"
             >
               All Brands
             </button>
@@ -63,9 +68,9 @@ export function FilterSidebar({ brands, categories, filters, onChange }: FilterS
           {brands.map((brand) => (
             <li key={brand.id}>
               <button
-                type="button"
+                className={`text-sm ${filters.brandSlug === brand.slug ? "font-medium text-[#077BFF]" : "text-gray-600 hover:text-gray-900"}`}
                 onClick={() => onChange({ ...filters, brandSlug: brand.slug })}
-                className={`text-sm ${filters.brandSlug === brand.slug ? "text-[#077BFF] font-medium" : "text-gray-600 hover:text-gray-900"}`}
+                type="button"
               >
                 {brand.name}
               </button>
@@ -75,14 +80,16 @@ export function FilterSidebar({ brands, categories, filters, onChange }: FilterS
       </div>
 
       <div>
-        <label className="flex items-center gap-2 cursor-pointer">
+        <label className="flex cursor-pointer items-center gap-2">
           <input
-            type="checkbox"
             checked={filters.inStockOnly ?? false}
-            onChange={(e) => onChange({ ...filters, inStockOnly: e.target.checked })}
             className="rounded border-gray-300 text-[#077BFF] focus:ring-[#077BFF]"
+            onChange={(e) =>
+              onChange({ ...filters, inStockOnly: e.target.checked })
+            }
+            type="checkbox"
           />
-          <span className="text-sm text-gray-700">In Stock Only</span>
+          <span className="text-gray-700 text-sm">In Stock Only</span>
         </label>
       </div>
     </aside>
