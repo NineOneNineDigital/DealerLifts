@@ -68,3 +68,33 @@ export interface CollectionConnection {
     hasNextPage: boolean;
   };
 }
+
+export interface ShopifyCartLineMerchandise {
+  availableForSale: boolean;
+  id: string;
+  product: {
+    featuredImage: { altText: string | null; url: string } | null;
+    handle: string;
+    title: string;
+  };
+  sku: string | null;
+  title: string;
+}
+
+export interface ShopifyCartLine {
+  cost: { totalAmount: Money };
+  id: string;
+  merchandise: ShopifyCartLineMerchandise;
+  quantity: number;
+}
+
+export interface ShopifyCart {
+  checkoutUrl: string;
+  cost: {
+    subtotalAmount: Money;
+    totalAmount: Money;
+  };
+  id: string;
+  lines: { nodes: ShopifyCartLine[] };
+  totalQuantity: number;
+}

@@ -84,3 +84,49 @@ export const COLLECTION_FRAGMENT = /* GraphQL */ `
     }
   }
 `;
+
+export const CART_FRAGMENT = /* GraphQL */ `
+  fragment CartFields on Cart {
+    id
+    checkoutUrl
+    totalQuantity
+    cost {
+      subtotalAmount {
+        amount
+        currencyCode
+      }
+      totalAmount {
+        amount
+        currencyCode
+      }
+    }
+    lines(first: 100) {
+      nodes {
+        id
+        quantity
+        cost {
+          totalAmount {
+            amount
+            currencyCode
+          }
+        }
+        merchandise {
+          ... on ProductVariant {
+            id
+            sku
+            title
+            availableForSale
+            product {
+              handle
+              title
+              featuredImage {
+                altText
+                url
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
