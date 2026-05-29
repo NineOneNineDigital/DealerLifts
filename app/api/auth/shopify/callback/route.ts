@@ -13,7 +13,7 @@ function signInError(message: string): NextResponse {
   return NextResponse.redirect(
     new URL(
       `${SIGN_IN_URL}?error=${encodeURIComponent(message)}`,
-      process.env.NEXT_PUBLIC_SHOPIFY_APP_URL ?? "http://localhost:3000"
+      process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
     )
   );
 }
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     });
 
     const appUrl =
-      process.env.NEXT_PUBLIC_SHOPIFY_APP_URL ?? "http://localhost:3000";
+      process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
     return NextResponse.redirect(new URL("/account", appUrl));
   } catch (err) {
     const message =
