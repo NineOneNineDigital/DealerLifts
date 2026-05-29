@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
+import { useState } from "react";
 
-export function ProductImages({ images }: { images: string[] }) {
+interface ProductImagesProps {
+  images: string[];
+  title: string;
+}
+
+export function ProductImages({ images, title }: ProductImagesProps) {
   const [selected, setSelected] = useState(0);
 
   if (images.length === 0) {
@@ -19,7 +24,7 @@ export function ProductImages({ images }: { images: string[] }) {
       <div className="relative aspect-square bg-gray-50 rounded-xl overflow-hidden">
         <Image
           src={images[selected]}
-          alt="Product image"
+          alt={title}
           fill
           unoptimized
           className="object-contain p-6"
@@ -39,7 +44,7 @@ export function ProductImages({ images }: { images: string[] }) {
             >
               <Image
                 src={img}
-                alt={`Thumbnail ${i + 1}`}
+                alt={`${title} thumbnail ${i + 1}`}
                 fill
                 unoptimized
                 className="object-contain p-1"
