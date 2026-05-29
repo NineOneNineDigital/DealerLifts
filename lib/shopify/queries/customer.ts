@@ -29,9 +29,42 @@ const ADDRESS_FRAGMENT = /* GraphQL */ `
     province
     zip
     country
-    phone
+    phoneNumber
   }
 `;
+
+interface RawAddress {
+  address1: string | null;
+  address2: string | null;
+  city: string | null;
+  company: string | null;
+  country: string | null;
+  firstName: string | null;
+  id: string;
+  lastName: string | null;
+  phoneNumber: string | null;
+  province: string | null;
+  zip: string | null;
+}
+
+function normalizeAddress(a: RawAddress | null): CustomerAddress | null {
+  if (!a) {
+    return null;
+  }
+  return {
+    address1: a.address1,
+    address2: a.address2,
+    city: a.city,
+    company: a.company,
+    country: a.country,
+    firstName: a.firstName,
+    id: a.id,
+    lastName: a.lastName,
+    phone: a.phoneNumber,
+    province: a.province,
+    zip: a.zip,
+  };
+}
 
 const ORDER_FRAGMENT = /* GraphQL */ `
   ${MONEY_FRAGMENT}
@@ -60,8 +93,12 @@ const GET_CUSTOMER_QUERY = /* GraphQL */ `
       displayName
       firstName
       lastName
-      email
-      phone
+      emailAddress {
+        emailAddress
+      }
+      phoneNumber {
+        phoneNumber
+      }
       defaultAddress {
         ...AddressFields
       }
@@ -102,13 +139,35 @@ const GET_CUSTOMER_ORDERS_QUERY = /* GraphQL */ `
 /**
  * Fetch the authenticated customer's profile including recent orders.
  */
+interface RawCustomer {
+  defaultAddress: RawAddress | null;
+  displayName: string;
+  emailAddress: { emailAddress: string | null } | null;
+  firstName: string | null;
+  id: string;
+  lastName: string | null;
+  orders: CustomerOrderConnection;
+  phoneNumber: { phoneNumber: string | null } | null;
+}
+
 export async function getCustomer(
   opts: { ordersFirst?: number } = {}
 ): Promise<Customer> {
-  const data = await customerFetch<{ customer: Customer }>(GET_CUSTOMER_QUERY, {
-    ordersFirst: opts.ordersFirst ?? 5,
-  });
-  return data.customer;
+  const data = await customerFetch<{ customer: RawCustomer }>(
+    GET_CUSTOMER_QUERY,
+    { ordersFirst: opts.ordersFirst ?? 5 }
+  );
+  const c = data.customer;
+  return {
+    defaultAddress: normalizeAddress(c.defaultAddress),
+    displayName: c.displayName,
+    email: c.emailAddress?.emailAddress ?? null,
+    firstName: c.firstName,
+    id: c.id,
+    lastName: c.lastName,
+    orders: c.orders,
+    phone: c.phoneNumber?.phoneNumber ?? null,
+  };
 }
 
 /**
@@ -147,9 +206,11 @@ export async function getCustomerAddresses(
   `;
 
   const data = await customerFetch<{
-    customer: { addresses: { nodes: CustomerAddress[] } };
+    customer: { addresses: { nodes: RawAddress[] } };
   }>(QUERY, { first });
-  return data.customer.addresses.nodes;
+  return data.customer.addresses.nodes
+    .map(normalizeAddress)
+    .filter((a): a is CustomerAddress => a !== null);
 }
 
 /**
