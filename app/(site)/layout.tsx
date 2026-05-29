@@ -11,10 +11,12 @@ export default function SiteLayout({
 }) {
   return (
     <VehicleProvider>
-      <Navbar />
-      <VehicleBanner />
-      <main>{children}</main>
-      <Footer />
+      <div className="flex min-h-screen flex-col">
+        <Navbar />
+        <VehicleBanner />
+        <main className="flex-1">{children}</main>
+        <Footer />
+      </div>
       <TawkWidget />
     </VehicleProvider>
   );
