@@ -1,5 +1,3 @@
-"use client";
-
 import {
   IconBolt,
   IconCar,
@@ -14,15 +12,18 @@ import {
   IconTruck,
   IconWind,
 } from "@tabler/icons-react";
-import { useQuery } from "convex/react";
 import Link from "next/link";
 import { BrandGrid } from "@/components/store/BrandGrid";
 import { ProductCard } from "@/components/store/ProductCard";
 import { ProductGrid } from "@/components/store/ProductGrid";
 import { StoreHero } from "@/components/store/StoreHero";
 import { VehicleSelector } from "@/components/store/VehicleSelector";
-import { api } from "@/convex/_generated/api";
-import { useFitmentMatchSet } from "@/hooks/useFitmentMatch";
+import {
+  listBrands,
+  listFeaturedProducts,
+  listNewProducts,
+  listTopLevelCategories,
+} from "@/lib/store/source";
 
 const VALUE_PROPS = [
   {
@@ -69,43 +70,13 @@ const CATEGORY_ACCENTS = [
   "border-pink-400",
 ];
 
-function ProductSkeleton() {
-  return (
-    <div className="animate-pulse overflow-hidden rounded-xl border border-gray-200 bg-white">
-      <div className="aspect-square bg-gray-100" />
-      <div className="space-y-2 p-4">
-        <div className="h-3 w-1/3 rounded bg-gray-100" />
-        <div className="h-4 w-full rounded bg-gray-100" />
-        <div className="h-4 w-3/4 rounded bg-gray-100" />
-        <div className="mt-1 h-3 w-1/4 rounded bg-gray-100" />
-        <div className="mt-3 flex justify-between">
-          <div className="h-6 w-16 rounded bg-gray-100" />
-          <div className="h-5 w-14 rounded bg-gray-100" />
-        </div>
-        <div className="mt-2 h-9 w-full rounded bg-gray-100" />
-      </div>
-    </div>
-  );
-}
-
-function CategorySkeleton() {
-  return (
-    <div className="animate-pulse rounded-xl border border-gray-200 bg-white p-6">
-      <div className="mx-auto h-5 w-2/3 rounded bg-gray-100" />
-    </div>
-  );
-}
-
-export default function StorePage() {
-  const featured = useQuery(api.products.listFeatured, { limit: 8 });
-  const newArrivals = useQuery(api.products.listAll, { limit: 4 });
-  const categories = useQuery(api.categories.listTopLevel);
-
-  const allIds = [
-    ...(featured?.map((p) => p._id) ?? []),
-    ...(newArrivals?.map((p) => p._id) ?? []),
-  ];
-  const fitsSet = useFitmentMatchSet(allIds);
+export default async function StorePage() {
+  const [featured, newArrivals, categories, brands] = await Promise.all([
+    listFeaturedProducts(8),
+    listNewProducts(4),
+    listTopLevelCategories(),
+    listBrands(),
+  ]);
 
   return (
     <>
@@ -143,57 +114,34 @@ export default function StorePage() {
           <VehicleSelector />
 
           {/* Featured Products */}
-          <section>
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="font-bold font-heading text-2xl text-gray-900">
-                  Featured Products
-                </h2>
-                <p className="mt-1 text-gray-500 text-sm">
-                  Hand-picked top sellers
-                </p>
-              </div>
-              <Link
-                className="font-semibold text-[#077BFF] text-sm transition-colors hover:text-[#0565D4]"
-                href="/store/search?q="
-              >
-                View all &rarr;
-              </Link>
-            </div>
-            {featured === undefined ? (
-              <ProductGrid>
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <ProductSkeleton key={i} />
-                ))}
-              </ProductGrid>
-            ) : featured.length > 0 ? (
-              <ProductGrid>
-                {featured.map((product) => (
-                  <ProductCard
-                    fitsVehicle={fitsSet.has(product._id.toString())}
-                    key={product._id}
-                    product={product}
-                  />
-                ))}
-              </ProductGrid>
-            ) : null}
-          </section>
-
-          {/* Shop by Category */}
-          {categories === undefined ? (
+          {featured.length > 0 && (
             <section>
               <div className="mb-6 flex items-center justify-between">
-                <h2 className="font-bold font-heading text-2xl text-gray-900">
-                  Shop by Category
-                </h2>
+                <div>
+                  <h2 className="font-bold font-heading text-2xl text-gray-900">
+                    Featured Products
+                  </h2>
+                  <p className="mt-1 text-gray-500 text-sm">
+                    Hand-picked top sellers
+                  </p>
+                </div>
+                <Link
+                  className="font-semibold text-[#077BFF] text-sm transition-colors hover:text-[#0565D4]"
+                  href="/store/search?q="
+                >
+                  View all &rarr;
+                </Link>
               </div>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <CategorySkeleton key={i} />
+              <ProductGrid>
+                {featured.map((product) => (
+                  <ProductCard key={product.id} product={product} />
                 ))}
-              </div>
+              </ProductGrid>
             </section>
-          ) : categories.length > 0 ? (
+          )}
+
+          {/* Shop by Category */}
+          {categories.length > 0 && (
             <section>
               <div className="mb-6 flex items-center justify-between">
                 <div>
@@ -213,7 +161,7 @@ export default function StorePage() {
                     <Link
                       className={`group flex items-center gap-3 border border-l-4 bg-white p-5 ${accent} rounded-xl border-gray-200 transition-all hover:border-[#077BFF] hover:border-l-[#077BFF] hover:shadow-md`}
                       href={`/store/categories/${cat.slug}`}
-                      key={cat._id}
+                      key={cat.id}
                     >
                       <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gray-50 transition-colors group-hover:bg-[#077BFF]/10">
                         <Icon
@@ -229,47 +177,37 @@ export default function StorePage() {
                 })}
               </div>
             </section>
-          ) : null}
+          )}
 
           {/* New Arrivals */}
-          <section>
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="font-bold font-heading text-2xl text-gray-900">
-                  New Arrivals
-                </h2>
-                <p className="mt-1 text-gray-500 text-sm">
-                  Latest additions to our catalog
-                </p>
+          {newArrivals.length > 0 && (
+            <section>
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <h2 className="font-bold font-heading text-2xl text-gray-900">
+                    New Arrivals
+                  </h2>
+                  <p className="mt-1 text-gray-500 text-sm">
+                    Latest additions to our catalog
+                  </p>
+                </div>
+                <Link
+                  className="font-semibold text-[#077BFF] text-sm transition-colors hover:text-[#0565D4]"
+                  href="/store/search?q="
+                >
+                  View all &rarr;
+                </Link>
               </div>
-              <Link
-                className="font-semibold text-[#077BFF] text-sm transition-colors hover:text-[#0565D4]"
-                href="/store/search?q="
-              >
-                View all &rarr;
-              </Link>
-            </div>
-            {newArrivals === undefined ? (
-              <ProductGrid>
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <ProductSkeleton key={i} />
-                ))}
-              </ProductGrid>
-            ) : newArrivals.length > 0 ? (
               <ProductGrid>
                 {newArrivals.map((product) => (
-                  <ProductCard
-                    fitsVehicle={fitsSet.has(product._id.toString())}
-                    key={product._id}
-                    product={product}
-                  />
+                  <ProductCard key={product.id} product={product} />
                 ))}
               </ProductGrid>
-            ) : null}
-          </section>
+            </section>
+          )}
 
           {/* Shop by Brand */}
-          <BrandGrid />
+          <BrandGrid brands={brands} />
 
           {/* Bottom CTA banner */}
           <section className="rounded-2xl bg-gradient-to-r from-gray-900 to-gray-800 px-8 py-12 text-center">
