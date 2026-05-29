@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
 import { listProducts, productByHandle } from "@/lib/shopify/queries/products";
+import {
+  getProductBySlug,
+  getStorefrontSource,
+  listBrands,
+  listFeaturedProducts,
+  listNewProducts,
+  listTopLevelCategories,
+} from "@/lib/store/source";
 
 // Dev-only smoke endpoint. Refuses to respond in production.
 export async function GET(req: Request) {
@@ -9,8 +17,51 @@ export async function GET(req: Request) {
 
   const url = new URL(req.url);
   const handle = url.searchParams.get("handle");
+  const adapterMode = url.searchParams.get("adapter") === "1";
 
   try {
+    if (adapterMode) {
+      const adapterHandle = handle ?? undefined;
+      const [featured, newArrivals, brands, categories, oneProduct] =
+        await Promise.all([
+          listFeaturedProducts(3),
+          listNewProducts(3),
+          listBrands(),
+          listTopLevelCategories(),
+          adapterHandle
+            ? getProductBySlug(adapterHandle)
+            : Promise.resolve(null),
+        ]);
+      return NextResponse.json(
+        {
+          source: getStorefrontSource(),
+          featured: featured.map((p) => ({
+            slug: p.slug,
+            title: p.title,
+            source: p.source,
+          })),
+          newArrivals: newArrivals.map((p) => ({
+            slug: p.slug,
+            title: p.title,
+            source: p.source,
+          })),
+          brandCount: brands.length,
+          categoryCount: categories.length,
+          oneProduct: oneProduct
+            ? {
+                slug: oneProduct.slug,
+                title: oneProduct.title,
+                brandName: oneProduct.brandName,
+                mapPrice: oneProduct.mapPrice,
+                source: oneProduct.source,
+              }
+            : null,
+          hint: "Set STOREFRONT_SOURCE=shopify in .env.local and restart dev to see the Shopify side.",
+        },
+        { status: 200 }
+      );
+    }
+
     if (handle) {
       const product = await productByHandle(handle, { cache: "no-store" });
       return NextResponse.json({ product }, { status: 200 });
@@ -25,7 +76,6 @@ export async function GET(req: Request) {
       tags: p.tags,
       variantCount: p.variants.nodes.length,
       firstVariantSku: p.variants.nodes[0]?.sku ?? null,
-      // The interesting bit: which metafield identifiers came back populated.
       metafieldsFound: p.metafields
         .filter((m): m is NonNullable<typeof m> => m !== null)
         .map((m) => ({
@@ -42,7 +92,7 @@ export async function GET(req: Request) {
         productCount: page.nodes.length,
         hasMore: page.pageInfo.hasNextPage,
         summary,
-        hint: "To inspect one product's full metafields, hit /api/dev/shopify-smoke?handle=<handle>",
+        hint: "Try ?adapter=1 to exercise the storefront-source adapter, or ?handle=<handle> to inspect one product's metafields.",
       },
       { status: 200 }
     );
