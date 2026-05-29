@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { listProducts, productByHandle } from "@/lib/shopify/queries/products";
+import { getCart } from "@/lib/store/cart";
 import {
   getProductBySlug,
   getStorefrontSource,
@@ -18,8 +19,30 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const handle = url.searchParams.get("handle");
   const adapterMode = url.searchParams.get("adapter") === "1";
+  const cartMode = url.searchParams.get("cart") === "1";
 
   try {
+    if (cartMode) {
+      const cart = await getCart();
+      return NextResponse.json(
+        {
+          source: cart.source,
+          itemCount: cart.itemCount,
+          subtotalCents: cart.subtotalCents,
+          checkoutUrl: cart.checkoutUrl,
+          items: cart.items.map((line) => ({
+            id: line.id,
+            productSlug: line.productSlug,
+            productTitle: line.productTitle,
+            quantity: line.quantity,
+            priceCents: line.priceCents,
+          })),
+          hint: "Cart is GET-only via this smoke endpoint. To add/update/remove, use the cart UI (next plan) or call the adapter directly.",
+        },
+        { status: 200 }
+      );
+    }
+
     if (adapterMode) {
       const adapterHandle = handle ?? undefined;
       const [featured, newArrivals, brands, categories, oneProduct] =
