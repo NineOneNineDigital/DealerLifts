@@ -1,22 +1,24 @@
-"use client";
-
-import { useQuery } from "convex/react";
+import { notFound } from "next/navigation";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { ProductCard } from "@/components/store/ProductCard";
 import { ProductGrid } from "@/components/store/ProductGrid";
 import { SearchBar } from "@/components/store/SearchBar";
-import { api } from "@/convex/_generated/api";
-import { useFitmentMatchSet } from "@/hooks/useFitmentMatch";
+import { getBrandBySlug, listProductsByBrand } from "@/lib/store/source";
 
-export default function BrandPage() {
-  const { slug } = useParams<{ slug: string }>();
-  const brand = useQuery(api.brands.getBySlug, { slug });
-  const products = useQuery(
-    api.products.listByBrand,
-    brand ? { brandId: brand._id } : "skip"
-  );
-  const fitsSet = useFitmentMatchSet(products?.map((p) => p._id) ?? []);
+interface BrandPageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export default async function BrandPage({ params }: BrandPageProps) {
+  const { slug } = await params;
+  const [brand, products] = await Promise.all([
+    getBrandBySlug(slug),
+    listProductsByBrand(slug),
+  ]);
+
+  if (!brand) {
+    notFound();
+  }
 
   return (
     <div className="pt-32 md:pt-40">
@@ -26,19 +28,17 @@ export default function BrandPage() {
             Store
           </Link>
           <span>/</span>
-          <span className="text-gray-900">{brand?.name ?? "Brand"}</span>
+          <span className="text-gray-900">{brand.name}</span>
         </div>
 
         <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <h1 className="font-bold font-heading text-2xl text-gray-900 md:text-3xl">
-            {brand?.name ?? "Loading..."}
+            {brand.name}
           </h1>
           <SearchBar />
         </div>
 
-        {products === undefined ? (
-          <p className="text-gray-400 text-sm">Loading products...</p>
-        ) : products.length === 0 ? (
+        {products.length === 0 ? (
           <p className="text-gray-500 text-sm">
             No products found for this brand.
           </p>
@@ -46,9 +46,8 @@ export default function BrandPage() {
           <ProductGrid>
             {products.map((product) => (
               <ProductCard
-                brandName={brand?.name}
-                fitsVehicle={fitsSet.has(product._id.toString())}
-                key={product._id}
+                brandName={brand.name}
+                key={product.id}
                 product={product}
               />
             ))}
