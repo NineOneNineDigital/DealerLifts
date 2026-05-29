@@ -1,8 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import {
-  exchangeCodeForTokens,
-} from "@/lib/shopify/customer-oauth";
+import { exchangeCodeForTokens } from "@/lib/shopify/customer-oauth";
 import {
   clearAuthState,
   getAuthState,
@@ -13,7 +11,10 @@ const SIGN_IN_URL = "/account/sign-in";
 
 function signInError(message: string): NextResponse {
   return NextResponse.redirect(
-    new URL(`${SIGN_IN_URL}?error=${encodeURIComponent(message)}`, process.env.NEXT_PUBLIC_SHOPIFY_APP_URL ?? "http://localhost:3000")
+    new URL(
+      `${SIGN_IN_URL}?error=${encodeURIComponent(message)}`,
+      process.env.NEXT_PUBLIC_SHOPIFY_APP_URL ?? "http://localhost:3000"
+    )
   );
 }
 
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Missing required params
-  if (!code || !urlState) {
+  if (!(code && urlState)) {
     return signInError("Missing code or state from Shopify callback.");
   }
 
@@ -59,10 +60,12 @@ export async function GET(request: NextRequest) {
       refreshToken: tokens.refresh_token,
     });
 
-    const appUrl = process.env.NEXT_PUBLIC_SHOPIFY_APP_URL ?? "http://localhost:3000";
+    const appUrl =
+      process.env.NEXT_PUBLIC_SHOPIFY_APP_URL ?? "http://localhost:3000";
     return NextResponse.redirect(new URL("/account", appUrl));
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Token exchange failed.";
+    const message =
+      err instanceof Error ? err.message : "Token exchange failed.";
     return signInError(message);
   }
 }
