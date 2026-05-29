@@ -40,3 +40,21 @@ export interface NormalizedInventory {
   productId: string;
   totalStock: number;
 }
+
+export interface NormalizedCartItem {
+  id: string;
+  partNumber: string;
+  priceCents: number;
+  productImage: string | null;
+  productSlug: string;
+  productTitle: string;
+  quantity: number;
+}
+
+export interface NormalizedCart {
+  checkoutUrl: string | null;
+  itemCount: number;
+  items: NormalizedCartItem[];
+  source: StorefrontSource;
+  subtotalCents: number;
+}
