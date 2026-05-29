@@ -8,24 +8,24 @@ import {
   listYears as adapterListYears,
 } from "@/lib/store/fitments-source";
 
-export async function listMakesAction() {
-  return await adapterListMakes();
+export async function listYearsAction() {
+  return await adapterListYears();
 }
 
-export async function listModelsAction(make: string) {
-  return await adapterListModels(make);
+export async function listMakesAction(year: number) {
+  return await adapterListMakes(year);
 }
 
-export async function listYearsAction(make: string, model: string) {
-  return await adapterListYears(make, model);
+export async function listModelsAction(year: number, make: string) {
+  return await adapterListModels(year, make);
 }
 
 export async function listSubmodelsAction(
+  year: number,
   make: string,
-  model: string,
-  year: number
+  model: string
 ) {
-  return await adapterListSubmodels(make, model, year);
+  return await adapterListSubmodels(year, make, model);
 }
 
 export async function getFitmentsForProductAction(productSlug: string) {

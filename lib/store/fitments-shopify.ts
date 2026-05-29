@@ -89,54 +89,52 @@ function titleCase(s: string): string {
     .join(" ");
 }
 
-export async function listMakes(): Promise<string[]> {
+export async function listYears(): Promise<number[]> {
+  const fitments = await getAllFitmentsCached();
+  const set = new Set<number>();
+  for (const f of fitments) {
+    set.add(f.year);
+  }
+  return Array.from(set).sort((a, b) => b - a);
+}
+
+export async function listMakes(year: number): Promise<string[]> {
   const fitments = await getAllFitmentsCached();
   const set = new Set<string>();
   for (const f of fitments) {
-    set.add(f.make);
+    if (f.year === year) {
+      set.add(f.make);
+    }
   }
   return Array.from(set).sort().map(titleCase);
 }
 
-export async function listModels(make: string): Promise<string[]> {
+export async function listModels(
+  year: number,
+  make: string
+): Promise<string[]> {
   const fitments = await getAllFitmentsCached();
   const m = make.toLowerCase().replace(/\s+/g, "-");
   const set = new Set<string>();
   for (const f of fitments) {
-    if (f.make === m) {
+    if (f.year === year && f.make === m) {
       set.add(f.model);
     }
   }
   return Array.from(set).sort().map(titleCase);
 }
 
-export async function listYears(
+export async function listSubmodels(
+  year: number,
   make: string,
   model: string
-): Promise<number[]> {
-  const fitments = await getAllFitmentsCached();
-  const m = make.toLowerCase().replace(/\s+/g, "-");
-  const mod = model.toLowerCase().replace(/\s+/g, "-");
-  const set = new Set<number>();
-  for (const f of fitments) {
-    if (f.make === m && f.model === mod) {
-      set.add(f.year);
-    }
-  }
-  return Array.from(set).sort((a, b) => b - a);
-}
-
-export async function listSubmodels(
-  make: string,
-  model: string,
-  year: number
 ): Promise<string[]> {
   const fitments = await getAllFitmentsCached();
   const m = make.toLowerCase().replace(/\s+/g, "-");
   const mod = model.toLowerCase().replace(/\s+/g, "-");
   const set = new Set<string>();
   for (const f of fitments) {
-    if (f.make === m && f.model === mod && f.year === year) {
+    if (f.year === year && f.make === m && f.model === mod) {
       set.add(f.submodel);
     }
   }

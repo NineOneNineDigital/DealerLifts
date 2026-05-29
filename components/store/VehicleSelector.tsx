@@ -34,44 +34,44 @@ export function VehicleSelector() {
   }, [vehicle]);
 
   useEffect(() => {
-    listMakesAction().then(setMakes);
+    listYearsAction().then(setYears);
   }, []);
 
   useEffect(() => {
-    if (make) {
-      listModelsAction(make).then(setModels);
+    const yearNum = Number(year);
+    if (year && Number.isFinite(yearNum)) {
+      listMakesAction(yearNum).then(setMakes);
+      setMake("");
       setModel("");
-      setYear("");
       setSubmodel("");
-      setYears([]);
+      setModels([]);
+      setSubmodels([]);
+    } else {
+      setMakes([]);
+    }
+  }, [year]);
+
+  useEffect(() => {
+    const yearNum = Number(year);
+    if (year && Number.isFinite(yearNum) && make) {
+      listModelsAction(yearNum, make).then(setModels);
+      setModel("");
+      setSubmodel("");
       setSubmodels([]);
     } else {
       setModels([]);
     }
-  }, [make]);
+  }, [year, make]);
 
   useEffect(() => {
-    if (make && model) {
-      listYearsAction(make, model).then(setYears);
-      setYear("");
-      setSubmodel("");
-      setSubmodels([]);
-    } else {
-      setYears([]);
-    }
-  }, [make, model]);
-
-  useEffect(() => {
-    if (make && model && year) {
-      const yearNum = Number(year);
-      if (Number.isFinite(yearNum)) {
-        listSubmodelsAction(make, model, yearNum).then(setSubmodels);
-      }
+    const yearNum = Number(year);
+    if (year && Number.isFinite(yearNum) && make && model) {
+      listSubmodelsAction(yearNum, make, model).then(setSubmodels);
       setSubmodel("");
     } else {
       setSubmodels([]);
     }
-  }, [make, model, year]);
+  }, [year, make, model]);
 
   const handleSearch = () => {
     if (!(year && make && model)) {
@@ -98,7 +98,7 @@ export function VehicleSelector() {
     router.push(`/store/vehicle?${params.toString()}`);
   };
 
-  const noMakesLoaded = makes.length === 0;
+  const noDataLoaded = years.length === 0;
 
   return (
     <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-5">
@@ -114,7 +114,7 @@ export function VehicleSelector() {
         )}
       </div>
 
-      {noMakesLoaded ? (
+      {noDataLoaded ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-amber-800 text-sm">
           Vehicle data is still being synced. Check back shortly or browse the
           full catalog below.
@@ -125,9 +125,26 @@ export function VehicleSelector() {
         <select
           className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-[#077BFF] focus:outline-none focus:ring-1 focus:ring-[#077BFF]"
           onChange={(e) => {
+            setYear(e.target.value);
+            setMake("");
+            setModel("");
+            setSubmodel("");
+          }}
+          value={year}
+        >
+          <option value="">Select Year</option>
+          {years.map((y) => (
+            <option key={y} value={y}>
+              {y}
+            </option>
+          ))}
+        </select>
+        <select
+          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-[#077BFF] focus:outline-none focus:ring-1 focus:ring-[#077BFF] disabled:opacity-50"
+          disabled={!year}
+          onChange={(e) => {
             setMake(e.target.value);
             setModel("");
-            setYear("");
             setSubmodel("");
           }}
           value={make}
@@ -144,7 +161,6 @@ export function VehicleSelector() {
           disabled={!make}
           onChange={(e) => {
             setModel(e.target.value);
-            setYear("");
             setSubmodel("");
           }}
           value={model}
@@ -158,23 +174,7 @@ export function VehicleSelector() {
         </select>
         <select
           className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-[#077BFF] focus:outline-none focus:ring-1 focus:ring-[#077BFF] disabled:opacity-50"
-          disabled={!model}
-          onChange={(e) => {
-            setYear(e.target.value);
-            setSubmodel("");
-          }}
-          value={year}
-        >
-          <option value="">Select Year</option>
-          {years.map((y) => (
-            <option key={y} value={y}>
-              {y}
-            </option>
-          ))}
-        </select>
-        <select
-          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-[#077BFF] focus:outline-none focus:ring-1 focus:ring-[#077BFF] disabled:opacity-50"
-          disabled={!year || submodels.length === 0}
+          disabled={!model || submodels.length === 0}
           onChange={(e) => setSubmodel(e.target.value)}
           value={submodel}
         >
