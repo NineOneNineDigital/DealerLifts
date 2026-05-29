@@ -41,7 +41,7 @@ export default async function VehiclePage({ searchParams }: VehiclePageProps) {
           </h2>
         )}
 
-        {yearNum && make && model && products.length === 0 ? (
+        {yearNum && make && model && products.length === 0 && (
           <div className="py-12 text-center">
             <p className="mb-4 text-gray-500">
               No parts found for this vehicle.
@@ -53,13 +53,14 @@ export default async function VehiclePage({ searchParams }: VehiclePageProps) {
               Browse all products
             </Link>
           </div>
-        ) : products.length > 0 ? (
+        )}
+        {products.length > 0 && (
           <ProductGrid>
             {products.map((product) => (
               <ProductCard key={product.slug} product={product} />
             ))}
           </ProductGrid>
-        ) : null}
+        )}
       </div>
     </div>
   );

@@ -33,13 +33,14 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           </p>
         )}
 
-        {results.length > 0 ? (
+        {results.length > 0 && (
           <ProductGrid>
             {results.map((p) => (
               <ProductCard key={p.slug} product={p} />
             ))}
           </ProductGrid>
-        ) : q ? (
+        )}
+        {q && results.length === 0 && (
           <div className="py-16 text-center">
             <p className="mb-4 text-gray-500">
               No products found for &quot;{q}&quot;
@@ -51,7 +52,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               Browse all products
             </Link>
           </div>
-        ) : null}
+        )}
       </div>
     </div>
   );
