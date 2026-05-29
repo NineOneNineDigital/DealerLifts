@@ -1,64 +1,24 @@
-"use client";
-
-import { useQuery } from "convex/react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect } from "react";
 import { ProductCard } from "@/components/store/ProductCard";
 import { ProductGrid } from "@/components/store/ProductGrid";
 import { VehicleSelector } from "@/components/store/VehicleSelector";
-import { api } from "@/convex/_generated/api";
-import { useSelectedVehicle } from "@/lib/vehicle/VehicleProvider";
+import { listProductsByVehicle } from "@/lib/store/fitments-source";
 
-export default function VehiclePage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="pt-32 md:pt-40">
-          <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
-            <p className="text-gray-400">Loading...</p>
-          </div>
-        </div>
-      }
-    >
-      <VehicleContent />
-    </Suspense>
-  );
+interface VehiclePageProps {
+  searchParams: Promise<{
+    year?: string;
+    make?: string;
+    model?: string;
+  }>;
 }
 
-function VehicleContent() {
-  const searchParams = useSearchParams();
-  const { vehicle, setVehicle } = useSelectedVehicle();
-
-  // URL params win when present (shareable links), otherwise fall back to persisted vehicle.
-  const urlYear = searchParams.get("year");
-  const urlMake = searchParams.get("make");
-  const urlModel = searchParams.get("model");
-
-  const year = urlYear ? Number(urlYear) : vehicle?.year;
-  const make = urlMake || vehicle?.make || "";
-  const model = urlModel || vehicle?.model || "";
-
-  // If we landed here from a shared link, persist the selection so the banner
-  // and badges work consistently on subsequent pages.
-  useEffect(() => {
-    if (
-      urlYear &&
-      urlMake &&
-      urlModel &&
-      (!vehicle ||
-        vehicle.year !== Number(urlYear) ||
-        vehicle.make !== urlMake ||
-        vehicle.model !== urlModel)
-    ) {
-      setVehicle({ year: Number(urlYear), make: urlMake, model: urlModel });
-    }
-  }, [urlYear, urlMake, urlModel, vehicle, setVehicle]);
-
-  const products = useQuery(
-    api.fitments.getProductsByFitment,
-    year && make && model ? { year, make, model } : "skip"
-  );
+export default async function VehiclePage({ searchParams }: VehiclePageProps) {
+  const { year, make, model } = await searchParams;
+  const yearNum = year ? Number.parseInt(year, 10) : null;
+  const products =
+    yearNum && make && model
+      ? await listProductsByVehicle({ year: yearNum, make, model })
+      : [];
 
   return (
     <div className="pt-32 md:pt-40">
@@ -75,15 +35,13 @@ function VehicleContent() {
           <VehicleSelector />
         </div>
 
-        {year && make && model && (
+        {yearNum && make && model && (
           <h2 className="mb-6 font-bold font-heading text-gray-900 text-xl">
-            Parts for {year} {make} {model}
+            Parts for {yearNum} {make} {model}
           </h2>
         )}
 
-        {products === undefined && year ? (
-          <p className="text-gray-400 text-sm">Loading...</p>
-        ) : products && products.length === 0 ? (
+        {yearNum && make && model && products.length === 0 ? (
           <div className="py-12 text-center">
             <p className="mb-4 text-gray-500">
               No parts found for this vehicle.
@@ -95,13 +53,11 @@ function VehicleContent() {
               Browse all products
             </Link>
           </div>
-        ) : products && products.length > 0 ? (
+        ) : products.length > 0 ? (
           <ProductGrid>
-            {products.map((product) =>
-              product ? (
-                <ProductCard key={product._id} product={product} />
-              ) : null
-            )}
+            {products.map((product) => (
+              <ProductCard key={product.slug} product={product} />
+            ))}
           </ProductGrid>
         ) : null}
       </div>
