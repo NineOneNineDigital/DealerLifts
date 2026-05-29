@@ -8,7 +8,6 @@ import {
   IconMenu2,
   IconX,
   IconShoppingCart,
-  IconShieldLock,
   IconUser,
   IconLogout,
   IconChevronDown,
@@ -28,10 +27,8 @@ const navLinks = [
 
 function UserMenu({
   isLight,
-  isAdmin,
 }: {
   isLight: boolean;
-  isAdmin: boolean;
 }) {
   const { user } = useUser();
   const { signOut } = useClerk();
@@ -107,16 +104,6 @@ function UserMenu({
               <IconSettings size={15} />
               Manage Account
             </Link>
-            {isAdmin && (
-              <Link
-                href="/admin"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-2 border-t border-gray-100 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-              >
-                <IconShieldLock size={15} />
-                Admin
-              </Link>
-            )}
             <button
               type="button"
               onClick={() => signOut({ redirectUrl: "/" })}
@@ -141,7 +128,6 @@ export function Navbar() {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
   const isSignedIn = isLoaded && !!user;
-  const isAdmin = user?.publicMetadata?.role === "admin";
 
   // Pages with dark/colored heroes need light (white) nav text
   const hasDarkHero = pathname === "/" || pathname === "/store";
@@ -202,21 +188,6 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className={`flex items-center gap-1 text-[13px] font-medium tracking-wide transition-colors duration-200 ${
-                  pathname?.startsWith("/admin")
-                    ? "text-[#077BFF]"
-                    : isLight
-                      ? "text-gray-500 hover:text-gray-900"
-                      : "text-white/70 hover:text-white"
-                }`}
-              >
-                <IconShieldLock size={14} />
-                Admin
-              </Link>
-            )}
             <button
               type="button"
               onClick={() => setCartOpen(true)}
@@ -233,7 +204,7 @@ export function Navbar() {
               )}
             </button>
             {isSignedIn ? (
-              <UserMenu isLight={isLight} isAdmin={!!isAdmin} />
+              <UserMenu isLight={isLight} />
             ) : (
               <Link
                 href={signInHref}
@@ -331,20 +302,6 @@ export function Navbar() {
                     Manage Account
                   </Link>
                 </>
-              )}
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  onClick={() => setMobileOpen(false)}
-                  className={`py-3 text-lg font-medium border-b border-gray-100 flex items-center gap-2 ${
-                    pathname?.startsWith("/admin")
-                      ? "text-[#077BFF]"
-                      : "text-gray-900"
-                  }`}
-                >
-                  <IconShieldLock size={18} />
-                  Admin
-                </Link>
               )}
               {isSignedIn ? (
                 <button
