@@ -57,3 +57,30 @@ export const PRODUCT_FRAGMENT = /* GraphQL */ `
     }
   }
 `;
+
+export const COLLECTION_FRAGMENT = /* GraphQL */ `
+  fragment CollectionFields on Collection {
+    id
+    handle
+    title
+    description
+    image {
+      altText
+      height
+      url
+      width
+    }
+    metafields(
+      identifiers: [
+        { namespace: "custom", key: "brand_logo" }
+        { namespace: "custom", key: "is_top_level" }
+        { namespace: "custom", key: "sort_order" }
+      ]
+    ) {
+      key
+      namespace
+      type
+      value
+    }
+  }
+`;

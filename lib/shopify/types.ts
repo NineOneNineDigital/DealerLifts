@@ -51,3 +51,20 @@ export interface ProductConnection {
     endCursor: string | null;
   };
 }
+
+export interface ShopifyCollection {
+  description: string;
+  handle: string;
+  id: string;
+  image: ShopifyImage | null;
+  metafields: (ShopifyMetafield | null)[];
+  title: string;
+}
+
+export interface CollectionConnection {
+  nodes: ShopifyCollection[];
+  pageInfo: {
+    endCursor: string | null;
+    hasNextPage: boolean;
+  };
+}
