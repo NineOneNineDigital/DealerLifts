@@ -110,8 +110,9 @@ export async function customerFetch<T>(
   });
 
   if (!res.ok) {
+    const body = await res.text().catch(() => "<no body>");
     throw new Error(
-      `Customer Account API request failed: ${res.status} ${res.statusText}`
+      `Customer Account API request failed: ${res.status} ${res.statusText} — ${body.slice(0, 800)}`
     );
   }
 
