@@ -1,22 +1,28 @@
 "use client";
 
 import { useState } from "react";
+import type { NormalizedProduct } from "@/lib/store/types";
+import { useCart } from "@/hooks/useCart";
 import { PriceDisplay } from "./PriceDisplay";
 import { StockBadge } from "./StockBadge";
-import { useCart } from "@/hooks/useCart";
-import type { Doc } from "@/convex/_generated/dataModel";
 
 interface ProductInfoProps {
-  product: Doc<"products">;
-  brandName?: string;
+  product: NormalizedProduct;
+  brandName?: string | null;
   inStock?: boolean;
+  stockCount?: number | null;
 }
 
-export function ProductInfo({ product, brandName, inStock = true }: ProductInfoProps) {
+export function ProductInfo({
+  product,
+  brandName,
+  inStock = true,
+  stockCount,
+}: ProductInfoProps) {
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCart();
 
-  const price = product.mapPrice || product.retailPrice;
+  const price = product.mapPrice ?? product.retailPrice;
 
   return (
     <div className="space-y-5">
@@ -63,7 +69,7 @@ export function ProductInfo({ product, brandName, inStock = true }: ProductInfoP
         </div>
         <button
           type="button"
-          onClick={() => addItem(product._id, quantity)}
+          onClick={() => addItem(product.id, quantity)}
           disabled={!inStock}
           className="flex-1 px-6 py-3 bg-[#077BFF] text-white font-heading font-bold text-sm uppercase tracking-wider rounded-lg hover:bg-[#0565D4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
