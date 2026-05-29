@@ -30,6 +30,7 @@ export interface NormalizedBrand {
 export interface NormalizedCategory {
   description: string | null;
   id: string;
+  image: string | null;
   name: string;
   slug: string;
   source: StorefrontSource;

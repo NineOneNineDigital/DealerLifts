@@ -12,6 +12,7 @@ import {
   IconTruck,
   IconWind,
 } from "@tabler/icons-react";
+import Image from "next/image";
 import Link from "next/link";
 import { BrandGrid } from "@/components/store/BrandGrid";
 import { ProductCard } from "@/components/store/ProductCard";
@@ -58,15 +59,15 @@ const CATEGORY_ICONS = [
   IconTag,
 ];
 
-const CATEGORY_ACCENTS = [
-  "border-blue-400",
-  "border-orange-400",
-  "border-green-400",
-  "border-yellow-400",
-  "border-red-400",
-  "border-teal-400",
-  "border-purple-400",
-  "border-pink-400",
+const CATEGORY_GRADIENTS = [
+  "from-blue-500 to-blue-700",
+  "from-orange-500 to-red-600",
+  "from-emerald-500 to-green-700",
+  "from-amber-500 to-yellow-600",
+  "from-rose-500 to-red-700",
+  "from-teal-500 to-cyan-700",
+  "from-purple-500 to-indigo-700",
+  "from-pink-500 to-rose-700",
 ];
 
 export default async function StorePage() {
@@ -152,22 +153,42 @@ export default async function StorePage() {
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
                 {categories.map((cat, i) => {
                   const Icon = CATEGORY_ICONS[i % CATEGORY_ICONS.length];
-                  const accent = CATEGORY_ACCENTS[i % CATEGORY_ACCENTS.length];
+                  const gradient =
+                    CATEGORY_GRADIENTS[i % CATEGORY_GRADIENTS.length];
                   return (
                     <Link
-                      className={`group flex items-center gap-3 border border-l-4 bg-white p-5 ${accent} rounded-xl border-gray-200 transition-all hover:border-[#077BFF] hover:border-l-[#077BFF] hover:shadow-md`}
+                      className="group relative aspect-[4/3] overflow-hidden rounded-xl shadow-sm transition-all hover:shadow-lg"
                       href={`/store/categories/${cat.slug}`}
                       key={cat.id}
                     >
-                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gray-50 transition-colors group-hover:bg-[#077BFF]/10">
-                        <Icon
-                          className="text-gray-500 transition-colors group-hover:text-[#077BFF]"
-                          size={18}
+                      {cat.image ? (
+                        <Image
+                          alt={cat.name}
+                          className="object-cover transition-transform duration-500 group-hover:scale-110"
+                          fill
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          src={cat.image}
                         />
+                      ) : (
+                        <div
+                          className={`absolute inset-0 bg-gradient-to-br ${gradient}`}
+                        >
+                          <Icon
+                            className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 text-white/30 transition-transform duration-500 group-hover:scale-110"
+                            size={80}
+                          />
+                        </div>
+                      )}
+                      {/* Dark overlay for label legibility */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 p-4">
+                        <h3 className="font-bold font-heading text-base text-white leading-tight">
+                          {cat.name}
+                        </h3>
+                        <p className="mt-0.5 font-medium text-white/80 text-xs">
+                          Shop now &rarr;
+                        </p>
                       </div>
-                      <span className="font-semibold text-gray-900 text-sm transition-colors group-hover:text-[#077BFF]">
-                        {cat.name}
-                      </span>
                     </Link>
                   );
                 })}

@@ -72,6 +72,7 @@ function mapCollectionToCategory(c: ShopifyCollection): NormalizedCategory {
   return {
     description: c.description || null,
     id: c.id,
+    image: c.image?.url ?? null,
     name: c.title,
     slug: c.handle,
     source: "shopify",
