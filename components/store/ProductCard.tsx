@@ -4,16 +4,16 @@ import { IconCar, IconCheck, IconShoppingCart } from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import type { Doc } from "@/convex/_generated/dataModel";
 import { useCart } from "@/hooks/useCart";
+import type { NormalizedProduct } from "@/lib/store/types";
 import { PriceDisplay } from "./PriceDisplay";
 import { StockBadge } from "./StockBadge";
 
 interface ProductCardProps {
-  brandName?: string;
+  brandName?: string | null;
   fitsVehicle?: boolean;
   inStock?: boolean;
-  product: Doc<"products">;
+  product: NormalizedProduct;
 }
 
 export function ProductCard({
@@ -22,7 +22,7 @@ export function ProductCard({
   inStock = true,
   fitsVehicle = false,
 }: ProductCardProps) {
-  const image = product.thumbnail || product.images[0];
+  const image = product.thumbnail ?? product.images[0] ?? null;
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
 
@@ -32,10 +32,12 @@ export function ProductCard({
     if (!inStock) {
       return;
     }
-    addItem(product._id);
+    addItem(product.id);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
+
+  const displayPrice = product.mapPrice ?? product.retailPrice;
 
   return (
     <div className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-md">
@@ -71,14 +73,9 @@ export function ProductCard({
           </h3>
           <p className="mt-1 text-gray-400 text-xs">{product.partNumber}</p>
           <div className="mt-3 flex items-center justify-between">
-            {product.mapPrice ? (
+            {displayPrice != null ? (
               <PriceDisplay
-                cents={product.mapPrice}
-                className="font-bold text-gray-900 text-lg"
-              />
-            ) : product.retailPrice ? (
-              <PriceDisplay
-                cents={product.retailPrice}
+                cents={displayPrice}
                 className="font-bold text-gray-900 text-lg"
               />
             ) : (
@@ -89,7 +86,6 @@ export function ProductCard({
         </div>
       </Link>
 
-      {/* Add to Cart button — always visible on mobile, hover-revealed on desktop */}
       <div className="px-4 pb-4 transition-all duration-200 md:translate-y-1 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100">
         <button
           className={`flex w-full items-center justify-center gap-2 rounded-lg py-2.5 font-semibold text-sm transition-colors ${
