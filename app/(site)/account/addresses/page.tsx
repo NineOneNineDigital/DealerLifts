@@ -3,6 +3,7 @@ import Link from "next/link";
 import { IconArrowLeft, IconMapPin } from "@tabler/icons-react";
 import { getCustomerAddresses } from "@/lib/shopify/queries/customer";
 import { CustomerNotAuthenticatedError } from "@/lib/shopify/customer-account-client";
+import type { CustomerAddress } from "@/lib/shopify/types";
 
 export const metadata = {
   title: "Addresses | DealerLifts",
@@ -10,7 +11,7 @@ export const metadata = {
 };
 
 export default async function AddressesPage() {
-  let addresses;
+  let addresses: CustomerAddress[];
   try {
     addresses = await getCustomerAddresses(25);
   } catch (err) {

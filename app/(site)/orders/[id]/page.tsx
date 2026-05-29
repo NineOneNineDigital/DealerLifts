@@ -8,6 +8,7 @@ import {
 } from "@tabler/icons-react";
 import { getCustomerOrder } from "@/lib/shopify/queries/customer";
 import { CustomerNotAuthenticatedError } from "@/lib/shopify/customer-account-client";
+import type { CustomerOrder } from "@/lib/shopify/types";
 
 export const metadata = {
   title: "Order Detail | DealerLifts",
@@ -50,7 +51,7 @@ export default async function OrderDetailPage({ params }: Props) {
   const { id } = await params;
   const orderId = decodeURIComponent(id);
 
-  let order;
+  let order: CustomerOrder | null;
   try {
     order = await getCustomerOrder(orderId);
   } catch (err) {

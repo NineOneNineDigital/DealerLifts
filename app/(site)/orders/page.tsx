@@ -3,6 +3,7 @@ import Link from "next/link";
 import { IconPackage, IconChevronRight, IconArrowLeft } from "@tabler/icons-react";
 import { getCustomerOrders } from "@/lib/shopify/queries/customer";
 import { CustomerNotAuthenticatedError } from "@/lib/shopify/customer-account-client";
+import type { CustomerOrderConnection } from "@/lib/shopify/types";
 
 export const metadata = {
   title: "My Orders | DealerLifts",
@@ -39,7 +40,7 @@ function statusColor(status: string) {
 }
 
 export default async function OrdersPage() {
-  let ordersConnection;
+  let ordersConnection: CustomerOrderConnection;
   try {
     ordersConnection = await getCustomerOrders({ first: 25 });
   } catch (err) {

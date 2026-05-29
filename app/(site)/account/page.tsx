@@ -8,6 +8,7 @@ import {
 } from "@tabler/icons-react";
 import { getCustomer } from "@/lib/shopify/queries/customer";
 import { CustomerNotAuthenticatedError } from "@/lib/shopify/customer-account-client";
+import type { Customer } from "@/lib/shopify/types";
 
 export const metadata = {
   title: "My Account | DealerLifts",
@@ -15,7 +16,7 @@ export const metadata = {
 };
 
 export default async function AccountPage() {
-  let customer;
+  let customer: Customer;
   try {
     customer = await getCustomer({ ordersFirst: 0 });
   } catch (err) {
