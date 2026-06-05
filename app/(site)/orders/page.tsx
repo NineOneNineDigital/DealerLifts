@@ -1,267 +1,141 @@
-"use client";
-
-import { useState } from "react";
+import { redirect } from "next/navigation";
 import Link from "next/link";
-import { useQuery } from "convex/react";
-import {
-  IconPackage,
-  IconChevronDown,
-  IconChevronUp,
-  IconMapPin,
-  IconTruck,
-} from "@tabler/icons-react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
-import { PriceDisplay } from "@/components/store/PriceDisplay";
+import { IconPackage, IconChevronRight, IconArrowLeft } from "@tabler/icons-react";
+import { getCustomerOrders } from "@/lib/shopify/queries/customer";
+import { CustomerNotAuthenticatedError } from "@/lib/shopify/customer-account-client";
+import type { CustomerOrderConnection } from "@/lib/shopify/types";
 
-const STATUS_BADGE: Record<string, { label: string; classes: string }> = {
-  pending:    { label: "Pending",    classes: "bg-yellow-100 text-yellow-800" },
-  paid:       { label: "Paid",       classes: "bg-green-100 text-green-800" },
-  processing: { label: "Processing", classes: "bg-blue-100 text-blue-800" },
-  shipped:    { label: "Shipped",    classes: "bg-purple-100 text-purple-800" },
-  delivered:  { label: "Delivered",  classes: "bg-green-100 text-green-800" },
-  cancelled:  { label: "Cancelled",  classes: "bg-red-100 text-red-800" },
+export const metadata = {
+  title: "My Orders | DealerLifts",
+  description: "View your DealerLifts order history",
 };
 
-function formatDate(ts: number) {
-  return new Date(ts).toLocaleDateString("en-US", {
-    month: "short",
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", {
     day: "numeric",
+    month: "short",
     year: "numeric",
   });
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const key = status.toLowerCase();
-  const badge = STATUS_BADGE[key] ?? {
-    label: status,
-    classes: "bg-gray-100 text-gray-700",
-  };
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${badge.classes}`}
-    >
-      {badge.label}
-    </span>
-  );
+function formatMoney(amount: string, currencyCode: string) {
+  return new Intl.NumberFormat("en-US", {
+    currency: currencyCode,
+    style: "currency",
+  }).format(parseFloat(amount));
 }
 
-export default function OrdersPage() {
-  const orders = useQuery(api.orders.listForUser);
-  const [expandedId, setExpandedId] = useState<Id<"orders"> | null>(null);
+function statusColor(status: string) {
+  const s = status.toLowerCase();
+  if (s.includes("fulfilled") || s.includes("delivered") || s.includes("paid")) {
+    return "bg-green-100 text-green-700";
+  }
+  if (s.includes("unfulfilled") || s.includes("pending")) {
+    return "bg-yellow-100 text-yellow-700";
+  }
+  if (s.includes("cancel") || s.includes("refund")) {
+    return "bg-red-100 text-red-700";
+  }
+  return "bg-gray-100 text-gray-600";
+}
+
+export default async function OrdersPage() {
+  let ordersConnection: CustomerOrderConnection;
+  try {
+    ordersConnection = await getCustomerOrders({ first: 25 });
+  } catch (err) {
+    if (err instanceof CustomerNotAuthenticatedError) {
+      redirect("/account/sign-in");
+    }
+    throw err;
+  }
+
+  const orders = ordersConnection.nodes;
 
   return (
     <div className="pt-32 md:pt-40">
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-2xl px-6 py-12">
+        {/* Back + header */}
         <div className="mb-8">
-          <h1 className="font-heading text-2xl font-bold text-gray-900 md:text-3xl">
-            My Orders
+          <Link
+            href="/account"
+            className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900"
+          >
+            <IconArrowLeft size={14} />
+            My Account
+          </Link>
+          <h1 className="font-heading text-2xl font-bold text-gray-900">
+            Order History
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            View your order history and tracking details.
+            {orders.length === 0
+              ? "No orders yet"
+              : `${orders.length} order${orders.length === 1 ? "" : "s"}`}
           </p>
         </div>
 
-        {orders === undefined ? (
-          <div className="flex items-center justify-center rounded-xl border border-gray-200 bg-white py-16">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-[#077BFF]" />
-          </div>
-        ) : orders.length === 0 ? (
-          <div className="rounded-xl border border-gray-200 bg-white py-16 text-center">
-            <IconPackage size={36} className="mx-auto mb-3 text-gray-300" />
-            <p className="text-sm font-medium text-gray-600">
-              You haven&apos;t placed any orders yet
-            </p>
-            <p className="mt-1 text-xs text-gray-400">
-              Once you check out, your orders will appear here.
+        {orders.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-6 py-16 text-center">
+            <IconPackage size={40} className="mx-auto mb-4 text-gray-300" />
+            <p className="font-medium text-gray-700">No orders yet</p>
+            <p className="mt-1 text-sm text-gray-500">
+              Place your first order in our store.
             </p>
             <Link
-              href="/store"
-              className="mt-5 inline-block rounded-lg bg-[#077BFF] px-5 py-2 text-sm font-semibold text-white hover:bg-[#0565D4]"
+              href="/shop"
+              className="mt-6 inline-block rounded-lg bg-[#077BFF] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#0066dd]"
             >
-              Browse the Store
+              Shop Now
             </Link>
           </div>
         ) : (
-          <div className="space-y-3">
+          <ul className="space-y-3">
             {orders.map((order) => {
-              const isExpanded = expandedId === order._id;
-              const itemCount = order.items.reduce(
-                (sum, i) => sum + i.quantity,
-                0,
-              );
+              const encodedId = encodeURIComponent(order.id);
               return (
-                <div
-                  key={order._id}
-                  className="overflow-hidden rounded-xl border border-gray-200 bg-white"
-                >
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setExpandedId((prev) =>
-                        prev === order._id ? null : order._id,
-                      )
-                    }
-                    className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-gray-50"
+                <li key={order.id}>
+                  <Link
+                    href={`/orders/${encodedId}`}
+                    className="group flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
                   >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-heading text-sm font-bold text-gray-900">
-                          {order.orderNumber}
+                    <div className="flex min-w-0 flex-1 items-center gap-4">
+                      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#077BFF]/10 text-[#077BFF]">
+                        <IconPackage size={18} />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900">
+                          {order.name}
                         </p>
-                        <StatusBadge
-                          status={order.fulfillmentStatus || order.status}
-                        />
+                        <p className="text-xs text-gray-500">
+                          {formatDate(order.processedAt)}
+                        </p>
                       </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        {formatDate(order._creationTime)} · {itemCount}{" "}
-                        {itemCount === 1 ? "item" : "items"}
-                      </p>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <PriceDisplay
-                        cents={order.total}
-                        className="text-sm font-semibold text-gray-900"
+
+                    <div className="flex flex-shrink-0 items-center gap-3">
+                      <div className="hidden sm:block text-right">
+                        <p className="text-sm font-semibold text-gray-900">
+                          {formatMoney(
+                            order.totalPrice.amount,
+                            order.totalPrice.currencyCode
+                          )}
+                        </p>
+                        <span
+                          className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ${statusColor(order.fulfillmentStatus)}`}
+                        >
+                          {order.fulfillmentStatus.replace(/_/g, " ").toLowerCase()}
+                        </span>
+                      </div>
+                      <IconChevronRight
+                        size={16}
+                        className="text-gray-400 transition-transform group-hover:translate-x-0.5"
                       />
-                      {isExpanded ? (
-                        <IconChevronUp size={16} className="text-gray-400" />
-                      ) : (
-                        <IconChevronDown size={16} className="text-gray-400" />
-                      )}
                     </div>
-                  </button>
-
-                  {isExpanded && (
-                    <div className="border-t border-gray-100 bg-gray-50 px-5 py-5">
-                      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                        <div className="space-y-4">
-                          <div>
-                            <h3 className="mb-2 font-heading text-xs font-bold uppercase tracking-wide text-gray-500">
-                              Shipping Address
-                            </h3>
-                            <div className="flex items-start gap-2 text-sm text-gray-700">
-                              <IconMapPin
-                                size={14}
-                                className="mt-0.5 shrink-0 text-gray-400"
-                              />
-                              <span>
-                                {order.contactName}
-                                <br />
-                                {order.shippingAddress.street}
-                                <br />
-                                {order.shippingAddress.city},{" "}
-                                {order.shippingAddress.state}{" "}
-                                {order.shippingAddress.zip}
-                              </span>
-                            </div>
-                          </div>
-
-                          {order.trackingNumbers &&
-                            order.trackingNumbers.length > 0 && (
-                              <div>
-                                <h3 className="mb-2 font-heading text-xs font-bold uppercase tracking-wide text-gray-500">
-                                  Tracking
-                                </h3>
-                                <div className="space-y-1.5">
-                                  {order.trackingNumbers.map((t, i) => (
-                                    <div
-                                      key={i}
-                                      className="flex items-center gap-2 text-sm text-gray-700"
-                                    >
-                                      <IconTruck
-                                        size={14}
-                                        className="shrink-0 text-gray-400"
-                                      />
-                                      <span className="font-medium">
-                                        {t.carrier}:
-                                      </span>
-                                      {t.trackingUrl ? (
-                                        <a
-                                          href={t.trackingUrl}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          className="text-[#077BFF] hover:underline"
-                                        >
-                                          {t.trackingNumber}
-                                        </a>
-                                      ) : (
-                                        <span>{t.trackingNumber}</span>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                        </div>
-
-                        <div>
-                          <h3 className="mb-2 font-heading text-xs font-bold uppercase tracking-wide text-gray-500">
-                            Items
-                          </h3>
-                          <div className="space-y-2">
-                            {order.items.map((item, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-center gap-3 rounded-lg border border-gray-100 bg-white p-2.5"
-                              >
-                                {item.image ? (
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img
-                                    src={item.image}
-                                    alt={item.title}
-                                    className="h-10 w-10 rounded object-cover"
-                                  />
-                                ) : (
-                                  <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-100">
-                                    <IconPackage
-                                      size={16}
-                                      className="text-gray-400"
-                                    />
-                                  </div>
-                                )}
-                                <div className="min-w-0 flex-1">
-                                  <p className="truncate text-sm font-medium text-gray-900">
-                                    {item.title}
-                                  </p>
-                                  <p className="text-xs text-gray-500">
-                                    {item.partNumber}
-                                  </p>
-                                </div>
-                                <div className="shrink-0 text-right">
-                                  <PriceDisplay
-                                    cents={item.price * item.quantity}
-                                    className="text-sm font-medium text-gray-900"
-                                  />
-                                  <p className="text-xs text-gray-500">
-                                    {item.quantity} ×{" "}
-                                    <PriceDisplay
-                                      cents={item.price}
-                                      className="inline"
-                                    />
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-
-                          <div className="mt-3 space-y-1 border-t border-gray-200 pt-3 text-sm">
-                            <div className="flex justify-between text-gray-600">
-                              <span>Subtotal</span>
-                              <PriceDisplay cents={order.subtotal} />
-                            </div>
-                            <div className="flex justify-between font-semibold text-gray-900">
-                              <span>Total</span>
-                              <PriceDisplay cents={order.total} />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  </Link>
+                </li>
               );
             })}
-          </div>
+          </ul>
         )}
       </div>
     </div>

@@ -7,14 +7,17 @@ import {
   IconChevronDown,
   IconChevronUp,
 } from "@tabler/icons-react";
-import { useQuery } from "convex/react";
 import { useMemo, useState } from "react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
 import { useSelectedVehicle } from "@/lib/vehicle/VehicleProvider";
 
+interface FitmentEntry {
+  make: string;
+  model: string;
+  year: number;
+}
+
 interface FitmentPanelProps {
-  productId: Id<"products">;
+  fitments: FitmentEntry[];
 }
 
 /** Collapse [2018,2019,2020,2022,2023] -> "2018-2020, 2022-2023". */
@@ -40,15 +43,30 @@ function formatYearRanges(years: number[]): string {
   return ranges.map(([a, b]) => (a === b ? `${a}` : `${a}-${b}`)).join(", ");
 }
 
-export function FitmentPanel({ productId }: FitmentPanelProps) {
+export function FitmentPanel({ fitments }: FitmentPanelProps) {
   const { vehicle } = useSelectedVehicle();
-  const grouped = useQuery(api.fitments.getForProduct, { productId });
   const [expanded, setExpanded] = useState(false);
 
-  const totalModels = useMemo(() => {
-    if (!grouped) {
-      return 0;
+  const grouped = useMemo(() => {
+    const acc = fitments.reduce<Record<string, Record<string, number[]>>>(
+      (g, f) => {
+        g[f.make] ??= {};
+        g[f.make][f.model] ??= [];
+        g[f.make][f.model].push(f.year);
+        return g;
+      },
+      {}
+    );
+    // Sort years descending
+    for (const make of Object.keys(acc)) {
+      for (const model of Object.keys(acc[make])) {
+        acc[make][model].sort((a, b) => b - a);
+      }
     }
+    return acc;
+  }, [fitments]);
+
+  const totalModels = useMemo(() => {
     return Object.values(grouped).reduce(
       (acc, models) => acc + Object.keys(models).length,
       0
@@ -56,7 +74,7 @@ export function FitmentPanel({ productId }: FitmentPanelProps) {
   }, [grouped]);
 
   const matches = useMemo(() => {
-    if (!(vehicle && grouped)) {
+    if (!vehicle) {
       return false;
     }
     const models = grouped[vehicle.make];
@@ -70,11 +88,6 @@ export function FitmentPanel({ productId }: FitmentPanelProps) {
     return years.includes(vehicle.year);
   }, [grouped, vehicle]);
 
-  // Don't render anything while loading or when product has no fitment data —
-  // showing an empty panel adds noise without value.
-  if (grouped === undefined) {
-    return null;
-  }
   if (totalModels === 0 && !vehicle) {
     return null;
   }

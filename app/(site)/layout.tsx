@@ -1,7 +1,6 @@
 import { TawkWidget } from "@/components/chat/TawkWidget";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
-import { VehicleBanner } from "@/components/store/VehicleBanner";
 import { VehicleProvider } from "@/lib/vehicle/VehicleProvider";
 
 export default function SiteLayout({
@@ -11,10 +10,11 @@ export default function SiteLayout({
 }) {
   return (
     <VehicleProvider>
-      <Navbar />
-      <VehicleBanner />
-      <main>{children}</main>
-      <Footer />
+      <div className="flex min-h-screen flex-col">
+        <Navbar />
+        <main className="flex-1">{children}</main>
+        <Footer />
+      </div>
       <TawkWidget />
     </VehicleProvider>
   );

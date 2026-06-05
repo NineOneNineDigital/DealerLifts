@@ -8,33 +8,29 @@ import {
   IconMenu2,
   IconX,
   IconShoppingCart,
-  IconShieldLock,
   IconUser,
   IconLogout,
   IconChevronDown,
   IconPackage,
   IconSettings,
 } from "@tabler/icons-react";
-import { useUser, useClerk } from "@clerk/nextjs";
+import { useUser } from "@/hooks/useUser";
 import { useCart } from "@/hooks/useCart";
 import { CartDrawer } from "@/components/store/CartDrawer";
 
 const navLinks = [
   { href: "/services", label: "Services" },
   { href: "/gallery", label: "Gallery" },
-  { href: "/store", label: "Store" },
+  { href: "/shop", label: "Shop" },
   { href: "/contact", label: "Contact" },
 ];
 
 function UserMenu({
   isLight,
-  isAdmin,
 }: {
   isLight: boolean;
-  isAdmin: boolean;
 }) {
   const { user } = useUser();
-  const { signOut } = useClerk();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -51,10 +47,11 @@ function UserMenu({
   if (!user) return null;
 
   const displayName =
-    user.fullName || user.firstName || user.primaryEmailAddress?.emailAddress;
-  const email = user.primaryEmailAddress?.emailAddress ?? "";
+    user.displayName || user.firstName || user.email || "Account";
+  const email = user.email ?? "";
   const initials = (
     user.firstName?.[0] ||
+    user.displayName?.[0] ||
     email[0] ||
     "U"
   ).toUpperCase();
@@ -107,24 +104,13 @@ function UserMenu({
               <IconSettings size={15} />
               Manage Account
             </Link>
-            {isAdmin && (
-              <Link
-                href="/admin"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-2 border-t border-gray-100 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-              >
-                <IconShieldLock size={15} />
-                Admin
-              </Link>
-            )}
-            <button
-              type="button"
-              onClick={() => signOut({ redirectUrl: "/" })}
+            <a
+              href="/api/auth/shopify/logout"
               className="flex w-full items-center gap-2 border-t border-gray-100 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
             >
               <IconLogout size={15} />
               Sign Out
-            </button>
+            </a>
           </div>
         </div>
       )}
@@ -139,18 +125,11 @@ export function Navbar() {
   const pathname = usePathname();
   const { itemCount } = useCart();
   const { user, isLoaded } = useUser();
-  const { signOut } = useClerk();
   const isSignedIn = isLoaded && !!user;
-  const isAdmin = user?.publicMetadata?.role === "admin";
 
   // Pages with dark/colored heroes need light (white) nav text
-  const hasDarkHero = pathname === "/" || pathname === "/store";
+  const hasDarkHero = pathname === "/" || pathname === "/shop";
   const isLight = scrolled || !hasDarkHero;
-
-  const signInHref =
-    pathname && pathname !== "/sign-in" && pathname !== "/sign-up"
-      ? `/sign-in?redirect_url=${encodeURIComponent(pathname)}`
-      : "/sign-in";
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -202,21 +181,6 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className={`flex items-center gap-1 text-[13px] font-medium tracking-wide transition-colors duration-200 ${
-                  pathname?.startsWith("/admin")
-                    ? "text-[#077BFF]"
-                    : isLight
-                      ? "text-gray-500 hover:text-gray-900"
-                      : "text-white/70 hover:text-white"
-                }`}
-              >
-                <IconShieldLock size={14} />
-                Admin
-              </Link>
-            )}
             <button
               type="button"
               onClick={() => setCartOpen(true)}
@@ -233,10 +197,10 @@ export function Navbar() {
               )}
             </button>
             {isSignedIn ? (
-              <UserMenu isLight={isLight} isAdmin={!!isAdmin} />
+              <UserMenu isLight={isLight} />
             ) : (
               <Link
-                href={signInHref}
+                href="/account/sign-in"
                 className={`text-[13px] font-medium tracking-wide transition-colors duration-200 ${
                   isLight
                     ? "text-gray-500 hover:text-gray-900"
@@ -332,35 +296,18 @@ export function Navbar() {
                   </Link>
                 </>
               )}
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  onClick={() => setMobileOpen(false)}
-                  className={`py-3 text-lg font-medium border-b border-gray-100 flex items-center gap-2 ${
-                    pathname?.startsWith("/admin")
-                      ? "text-[#077BFF]"
-                      : "text-gray-900"
-                  }`}
-                >
-                  <IconShieldLock size={18} />
-                  Admin
-                </Link>
-              )}
               {isSignedIn ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileOpen(false);
-                    signOut({ redirectUrl: "/" });
-                  }}
+                <a
+                  href="/api/auth/shopify/logout"
+                  onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-2 border-b border-gray-100 py-3 text-left text-lg font-medium text-red-600"
                 >
                   <IconLogout size={18} />
                   Sign Out
-                </button>
+                </a>
               ) : (
                 <Link
-                  href={signInHref}
+                  href="/account/sign-in"
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-2 border-b border-gray-100 py-3 text-lg font-medium text-gray-900"
                 >

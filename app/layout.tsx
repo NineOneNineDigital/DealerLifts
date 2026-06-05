@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Oxanium, Barlow, Barlow_Condensed } from "next/font/google";
 import "./globals.css";
-import { ConvexClientProvider } from "./ConvexClientProvider";
+import { CartProvider } from "@/lib/store/cart-context";
 
 const oxanium = Oxanium({
   subsets: ["latin"],
@@ -61,7 +61,7 @@ export default function RootLayout({
       className={`${oxanium.variable} ${barlow.variable} ${barlowCondensed.variable}`}
     >
       <body className="font-sans antialiased bg-white text-gray-900">
-        <ConvexClientProvider>{children}</ConvexClientProvider>
+        <CartProvider>{children}</CartProvider>
       </body>
     </html>
   );

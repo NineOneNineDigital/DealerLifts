@@ -3,7 +3,7 @@
 import Script from "next/script";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@/hooks/useUser";
 
 declare global {
   interface Window {
@@ -38,11 +38,8 @@ export function TawkWidget() {
   useEffect(() => {
     if (!isLoaded || isAdminRoute) return;
 
-    const name =
-      user?.fullName ||
-      user?.firstName ||
-      user?.primaryEmailAddress?.emailAddress;
-    const email = user?.primaryEmailAddress?.emailAddress;
+    const name = user?.displayName || user?.firstName || user?.email;
+    const email = user?.email;
     if (!name && !email) return;
 
     window.Tawk_API = window.Tawk_API ?? {};
