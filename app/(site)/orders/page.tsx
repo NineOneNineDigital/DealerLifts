@@ -82,7 +82,7 @@ export default async function OrdersPage() {
               Place your first order in our store.
             </p>
             <Link
-              href="/store"
+              href="/shop"
               className="mt-6 inline-block rounded-lg bg-[#077BFF] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#0066dd]"
             >
               Shop Now

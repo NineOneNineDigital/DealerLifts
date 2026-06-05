@@ -35,6 +35,9 @@ function parseMoneyToCents(amount: string | undefined): number | null {
 function mapProduct(p: ShopifyProduct): NormalizedProduct {
   const variant = p.variants.nodes[0];
   const priceCents = parseMoneyToCents(variant?.price.amount);
+  const compareAtCents = parseMoneyToCents(variant?.compareAtPrice?.amount);
+  const onSale =
+    compareAtCents != null && priceCents != null && compareAtCents > priceCents;
   const allImages = p.featuredImage
     ? [p.featuredImage.url, ...p.images.nodes.map((i) => i.url)]
     : p.images.nodes.map((i) => i.url);
@@ -42,6 +45,7 @@ function mapProduct(p: ShopifyProduct): NormalizedProduct {
     brandId: null,
     brandName: p.vendor || null,
     categoryId: null,
+    compareAtPriceCents: onSale ? compareAtCents : null,
     description: p.description || null,
     id: variant?.id ?? p.id,
     images: Array.from(new Set(allImages)),

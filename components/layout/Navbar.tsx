@@ -21,7 +21,7 @@ import { CartDrawer } from "@/components/store/CartDrawer";
 const navLinks = [
   { href: "/services", label: "Services" },
   { href: "/gallery", label: "Gallery" },
-  { href: "/store", label: "Store" },
+  { href: "/shop", label: "Shop" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -128,7 +128,7 @@ export function Navbar() {
   const isSignedIn = isLoaded && !!user;
 
   // Pages with dark/colored heroes need light (white) nav text
-  const hasDarkHero = pathname === "/" || pathname === "/store";
+  const hasDarkHero = pathname === "/" || pathname === "/shop";
   const isLight = scrolled || !hasDarkHero;
 
   useEffect(() => {

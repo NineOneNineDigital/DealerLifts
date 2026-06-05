@@ -23,8 +23,8 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     <div className="pt-32 md:pt-40">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-center gap-2 text-gray-400 text-sm">
-          <Link className="hover:text-gray-900" href="/store">
-            Store
+          <Link className="hover:text-gray-900" href="/shop">
+            Shop
           </Link>
           <span>/</span>
           <span className="line-clamp-1 text-gray-900">{product.title}</span>

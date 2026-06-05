@@ -39,6 +39,10 @@ export const PRODUCT_FRAGMENT = /* GraphQL */ `
           amount
           currencyCode
         }
+        compareAtPrice {
+          amount
+          currencyCode
+        }
       }
     }
   }

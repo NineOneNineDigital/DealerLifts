@@ -11,7 +11,7 @@ import {
 
 const shopLinks = [
   { href: "/services", label: "Services" },
-  { href: "/store", label: "Parts Store" },
+  { href: "/shop", label: "Parts Store" },
   { href: "/gallery", label: "Gallery" },
 ];
 

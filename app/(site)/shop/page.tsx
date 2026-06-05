@@ -1,31 +1,19 @@
 import {
-  IconBolt,
-  IconCar,
-  IconEngine,
-  IconFlame,
   IconHeadset,
   IconRefresh,
-  IconSettings,
   IconShieldCheck,
-  IconTag,
-  IconTool,
   IconTruck,
-  IconWind,
 } from "@tabler/icons-react";
-import Image from "next/image";
 import Link from "next/link";
 import { BrandGrid } from "@/components/store/BrandGrid";
 import { BuildTypeGrid } from "@/components/store/BuildTypeGrid";
+import { CategoryGrid } from "@/components/store/CategoryGrid";
 import { ProductCard } from "@/components/store/ProductCard";
 import { ProductGrid } from "@/components/store/ProductGrid";
 import { StoreHero } from "@/components/store/StoreHero";
+import { VehicleFitRail } from "@/components/store/VehicleFitRail";
 import { VehicleSelector } from "@/components/store/VehicleSelector";
-import {
-  listBrands,
-  listFeaturedProducts,
-  listNewProducts,
-  listTopLevelCategories,
-} from "@/lib/store/source";
+import { listBrands, listNewProducts } from "@/lib/store/source";
 
 const VALUE_PROPS = [
   {
@@ -50,33 +38,9 @@ const VALUE_PROPS = [
   },
 ];
 
-const CATEGORY_ICONS = [
-  IconEngine,
-  IconCar,
-  IconTool,
-  IconBolt,
-  IconFlame,
-  IconWind,
-  IconSettings,
-  IconTag,
-];
-
-const CATEGORY_GRADIENTS = [
-  "from-blue-500 to-blue-700",
-  "from-orange-500 to-red-600",
-  "from-emerald-500 to-green-700",
-  "from-amber-500 to-yellow-600",
-  "from-rose-500 to-red-700",
-  "from-teal-500 to-cyan-700",
-  "from-purple-500 to-indigo-700",
-  "from-pink-500 to-rose-700",
-];
-
 export default async function StorePage() {
-  const [featured, newArrivals, categories, brands] = await Promise.all([
-    listFeaturedProducts(8),
-    listNewProducts(4),
-    listTopLevelCategories(),
+  const [newArrivals, brands] = await Promise.all([
+    listNewProducts(8),
     listBrands(),
   ]);
 
@@ -115,94 +79,14 @@ export default async function StorePage() {
           {/* Vehicle Selector */}
           <VehicleSelector />
 
+          {/* Parts that fit the selected vehicle (hidden when none selected) */}
+          <VehicleFitRail />
+
           {/* Shop by Build Type */}
           <BuildTypeGrid />
 
-          {/* Featured Products */}
-          {featured.length > 0 && (
-            <section>
-              <div className="mb-6 flex items-center justify-between">
-                <div>
-                  <h2 className="font-bold font-heading text-2xl text-gray-900">
-                    Featured Products
-                  </h2>
-                  <p className="mt-1 text-gray-500 text-sm">
-                    Hand-picked top sellers
-                  </p>
-                </div>
-                <Link
-                  className="font-semibold text-[#077BFF] text-sm transition-colors hover:text-[#0565D4]"
-                  href="/store/search?q="
-                >
-                  View all &rarr;
-                </Link>
-              </div>
-              <ProductGrid>
-                {featured.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </ProductGrid>
-            </section>
-          )}
-
           {/* Shop by Category */}
-          {categories.length > 0 && (
-            <section>
-              <div className="mb-6 flex items-center justify-between">
-                <div>
-                  <h2 className="font-bold font-heading text-2xl text-gray-900">
-                    Shop by Category
-                  </h2>
-                  <p className="mt-1 text-gray-500 text-sm">
-                    Browse our full catalog
-                  </p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                {categories.map((cat, i) => {
-                  const Icon = CATEGORY_ICONS[i % CATEGORY_ICONS.length];
-                  const gradient =
-                    CATEGORY_GRADIENTS[i % CATEGORY_GRADIENTS.length];
-                  return (
-                    <Link
-                      className="group relative aspect-[4/3] overflow-hidden rounded-xl shadow-sm transition-all hover:shadow-lg"
-                      href={`/store/categories/${cat.slug}`}
-                      key={cat.id}
-                    >
-                      {cat.image ? (
-                        <Image
-                          alt={cat.name}
-                          className="object-cover transition-transform duration-500 group-hover:scale-110"
-                          fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          src={cat.image}
-                        />
-                      ) : (
-                        <div
-                          className={`absolute inset-0 bg-gradient-to-br ${gradient}`}
-                        >
-                          <Icon
-                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white/30 transition-transform duration-500 group-hover:scale-110"
-                            size={80}
-                          />
-                        </div>
-                      )}
-                      {/* Dark overlay for label legibility */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                      <div className="absolute inset-x-0 bottom-0 p-4">
-                        <h3 className="font-bold font-heading text-base text-white leading-tight">
-                          {cat.name}
-                        </h3>
-                        <p className="mt-0.5 font-medium text-white/80 text-xs">
-                          Shop now &rarr;
-                        </p>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </section>
-          )}
+          <CategoryGrid />
 
           {/* New Arrivals */}
           {newArrivals.length > 0 && (
@@ -218,7 +102,7 @@ export default async function StorePage() {
                 </div>
                 <Link
                   className="font-semibold text-[#077BFF] text-sm transition-colors hover:text-[#0565D4]"
-                  href="/store/search?q="
+                  href="/shop/search?q="
                 >
                   View all &rarr;
                 </Link>
@@ -231,8 +115,8 @@ export default async function StorePage() {
             </section>
           )}
 
-          {/* Shop by Brand */}
-          <BrandGrid brands={brands} />
+          {/* Shop by Brand — most popular, with a link to the full list */}
+          <BrandGrid brands={brands.slice(0, 8)} viewAllHref="/shop/brands" />
 
           {/* Bottom CTA banner */}
           <section className="rounded-2xl bg-gradient-to-r from-gray-900 to-gray-800 px-8 py-12 text-center">

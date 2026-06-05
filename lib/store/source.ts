@@ -5,6 +5,7 @@ export {
   getInventoryByProductId,
   getProductBySlug,
   listBrands,
+  listBrandsWithCategories,
   listFeaturedProducts,
   listNewProducts,
   listProductsByBrand,

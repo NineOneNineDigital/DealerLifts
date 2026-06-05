@@ -12,8 +12,8 @@ export default function CartPage() {
     <div className="pt-32 md:pt-40">
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center gap-2 text-gray-400 text-sm">
-          <Link className="hover:text-gray-900" href="/store">
-            Store
+          <Link className="hover:text-gray-900" href="/shop">
+            Shop
           </Link>
           <span>/</span>
           <span className="text-gray-900">Cart</span>
@@ -28,7 +28,7 @@ export default function CartPage() {
             <p className="mb-4 text-gray-500">Your cart is empty</p>
             <Link
               className="font-medium text-[#077BFF] text-sm hover:underline"
-              href="/store"
+              href="/shop"
             >
               Continue Shopping
             </Link>

@@ -1,18 +1,38 @@
-import { IconSearch, IconTruck } from "@tabler/icons-react";
+import { IconSearch } from "@tabler/icons-react";
+import Image from "next/image";
 import Link from "next/link";
 
 const QUICK_CATEGORIES = [
-  { href: "/store/categories/suspension", label: "Suspension" },
-  { href: "/store/categories/brakes", label: "Brakes" },
-  { href: "/store/categories/exhaust", label: "Exhaust" },
-  { href: "/store/categories/wheels-tires", label: "Wheels & Tires" },
-  { href: "/store/categories/lighting", label: "Lighting" },
-  { href: "/store/categories/engine", label: "Engine" },
+  { href: "/shop/categories/suspension", label: "Suspension" },
+  { href: "/shop/categories/brakes", label: "Brakes" },
+  { href: "/shop/categories/exhaust", label: "Exhaust" },
+  { href: "/shop/categories/wheels-tires", label: "Wheels & Tires" },
+  { href: "/shop/categories/lighting", label: "Lighting" },
+  { href: "/shop/categories/engine", label: "Engine" },
 ];
 
 export function StoreHero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#077BFF] via-[#0565D4] to-[#044AAF] pt-32 pb-12 md:pt-40 md:pb-16">
+    <section className="relative overflow-hidden pt-32 pb-12 md:pt-40 md:pb-16">
+      {/* Photographic backdrop */}
+      <Image
+        alt=""
+        aria-hidden
+        className="object-cover object-center"
+        fill
+        priority
+        sizes="100vw"
+        src="/dealerlifts-building.jpeg"
+      />
+      {/* Brand gradient + darkening overlay for text legibility */}
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-gradient-to-br from-[#044AAF]/95 via-[#0565D4]/85 to-[#077BFF]/75"
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20"
+      />
       {/* Subtle pattern overlay for depth */}
       <div
         aria-hidden
@@ -25,16 +45,8 @@ export function StoreHero() {
       />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Free shipping callout */}
-        <div className="mb-6 flex items-center justify-center gap-2">
-          <IconTruck className="text-blue-200" size={18} />
-          <span className="font-medium text-blue-100 text-sm">
-            Free shipping on orders over $99
-          </span>
-        </div>
-
         <div className="mb-8 text-center">
-          <h1 className="mb-3 font-bold font-heading text-4xl text-white tracking-tight md:text-6xl">
+          <h1 className="mb-3 font-bold font-heading text-4xl text-white tracking-tight drop-shadow-sm md:text-6xl">
             Quality Parts, Delivered
           </h1>
           <p className="mx-auto max-w-2xl text-blue-100 text-lg md:text-xl">
@@ -44,9 +56,13 @@ export function StoreHero() {
         </div>
 
         {/* Search */}
-        <form action="/store/search" className="relative mx-auto mb-8 max-w-2xl" method="get">
+        <form
+          action="/shop/search"
+          className="relative mx-auto mb-8 max-w-2xl"
+          method="get"
+        >
           <IconSearch
-            className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-4 text-gray-400"
+            className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-gray-400"
             size={20}
           />
           <input
@@ -56,7 +72,7 @@ export function StoreHero() {
             type="text"
           />
           <button
-            className="-translate-y-1/2 absolute top-1/2 right-2 rounded-lg bg-[#077BFF] px-5 py-2.5 font-semibold text-sm text-white transition-colors hover:bg-[#0565D4]"
+            className="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg bg-[#077BFF] px-5 py-2.5 font-semibold text-sm text-white transition-colors hover:bg-[#0565D4]"
             type="submit"
           >
             Search
@@ -68,7 +84,7 @@ export function StoreHero() {
           <span className="mr-1 text-blue-200 text-sm">Browse:</span>
           {QUICK_CATEGORIES.map((cat) => (
             <Link
-              className="rounded-full border border-white/20 bg-white/15 px-4 py-1.5 font-medium text-sm text-white transition-colors hover:bg-white/25"
+              className="rounded-full border border-white/20 bg-white/15 px-4 py-1.5 font-medium text-sm text-white backdrop-blur-sm transition-colors hover:bg-white/25"
               href={cat.href}
               key={cat.href}
             >

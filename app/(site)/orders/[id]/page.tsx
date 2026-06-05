@@ -155,7 +155,7 @@ export default async function OrderDetailPage({ params }: Props) {
         {/* Footer actions */}
         <div className="mt-8 text-center">
           <Link
-            href="/store"
+            href="/shop"
             className="inline-block rounded-lg bg-[#077BFF] px-6 py-3 text-sm font-semibold text-white hover:bg-[#0066dd]"
           >
             Continue Shopping

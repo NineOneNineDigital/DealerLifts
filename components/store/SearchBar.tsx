@@ -18,7 +18,7 @@ export function SearchBar({ defaultValue = "" }: { defaultValue?: string }) {
     clearTimeout(timeoutRef.current);
     if (value.trim()) {
       timeoutRef.current = setTimeout(() => {
-        router.push(`/store/search?q=${encodeURIComponent(value.trim())}`);
+        router.push(`/shop/search?q=${encodeURIComponent(value.trim())}`);
       }, 400);
     }
   };
@@ -27,7 +27,7 @@ export function SearchBar({ defaultValue = "" }: { defaultValue?: string }) {
     e.preventDefault();
     clearTimeout(timeoutRef.current);
     if (query.trim()) {
-      router.push(`/store/search?q=${encodeURIComponent(query.trim())}`);
+      router.push(`/shop/search?q=${encodeURIComponent(query.trim())}`);
     }
   };
 
