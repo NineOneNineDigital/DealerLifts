@@ -84,6 +84,9 @@ export async function customerFetch<T>(
       const newTokens = {
         accessToken: refreshed.access_token,
         expiresAt,
+        // Carry the login id_token forward if the refresh omits one, so logout
+        // still has an id_token_hint.
+        idToken: refreshed.id_token ?? tokens.idToken,
         refreshToken: refreshed.refresh_token,
       };
       await setCustomerTokens(newTokens);
