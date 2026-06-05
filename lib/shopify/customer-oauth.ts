@@ -10,18 +10,39 @@
 // ---------------------------------------------------------------------------
 
 const RE_TRAILING_SLASH = /\/+$/;
+const RE_URL_SCHEME = /^https?:\/\//i;
 
 function stripTrailingSlash(url: string | undefined): string | undefined {
   return url?.replace(RE_TRAILING_SLASH, "");
+}
+
+/**
+ * Returns an absolute origin with a scheme. Shopify rejects a scheme-less
+ * `redirect_uri` ("Invalid redirect_uri scheme"), and `new URL()` throws on a
+ * scheme-less base — yet hosts like Vercel expose the deploy URL without one
+ * (e.g. `my-app.vercel.app`). Default to https; localhost keeps http.
+ */
+function normalizeBaseUrl(url: string | undefined): string | undefined {
+  const trimmed = stripTrailingSlash(url);
+  if (!trimmed) {
+    return trimmed;
+  }
+  if (RE_URL_SCHEME.test(trimmed)) {
+    return trimmed;
+  }
+  const isLocal =
+    trimmed.startsWith("localhost") || trimmed.startsWith("127.0.0.1");
+  return `${isLocal ? "http" : "https"}://${trimmed}`;
 }
 
 const CLIENT_ID = process.env.SHOPIFY_CUSTOMER_ACCOUNT_API_CLIENT_ID;
 const AUTH_URL = stripTrailingSlash(
   process.env.SHOPIFY_CUSTOMER_ACCOUNT_AUTH_URL
 );
-const APP_URL =
-  stripTrailingSlash(process.env.NEXT_PUBLIC_SITE_URL) ??
-  "http://localhost:3000";
+/** Absolute origin of this app (scheme guaranteed). */
+export const APP_BASE_URL =
+  normalizeBaseUrl(process.env.NEXT_PUBLIC_SITE_URL) ?? "http://localhost:3000";
+const APP_URL = APP_BASE_URL;
 
 // Top-level regexes for base64url encoding (avoids per-call recompilation)
 const RE_PLUS = /\+/g;

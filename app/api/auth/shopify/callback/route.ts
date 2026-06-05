@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { exchangeCodeForTokens } from "@/lib/shopify/customer-oauth";
+import {
+  APP_BASE_URL,
+  exchangeCodeForTokens,
+} from "@/lib/shopify/customer-oauth";
 import {
   clearAuthState,
   getAuthState,
@@ -11,10 +14,7 @@ const SIGN_IN_URL = "/account/sign-in";
 
 function signInError(message: string): NextResponse {
   return NextResponse.redirect(
-    new URL(
-      `${SIGN_IN_URL}?error=${encodeURIComponent(message)}`,
-      process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
-    )
+    new URL(`${SIGN_IN_URL}?error=${encodeURIComponent(message)}`, APP_BASE_URL)
   );
 }
 
@@ -57,12 +57,11 @@ export async function GET(request: NextRequest) {
       accessToken: tokens.access_token,
       // expires_in is seconds from now
       expiresAt: Date.now() + tokens.expires_in * 1000,
+      idToken: tokens.id_token,
       refreshToken: tokens.refresh_token,
     });
 
-    const appUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-    return NextResponse.redirect(new URL("/account", appUrl));
+    return NextResponse.redirect(new URL("/account", APP_BASE_URL));
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Token exchange failed.";

@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { APP_BASE_URL } from "@/lib/shopify/customer-oauth";
 
 // ---------------------------------------------------------------------------
 // Cookie names
@@ -14,6 +15,8 @@ const ACCESS_TOKEN_COOKIE = "customer_access_token";
 const REFRESH_TOKEN_COOKIE = "customer_refresh_token";
 /** Expiry timestamp (ms since epoch) of the access token. */
 const EXPIRES_AT_COOKIE = "customer_token_expires_at";
+/** OIDC ID token — required as `id_token_hint` for RP-initiated logout. */
+const ID_TOKEN_COOKIE = "customer_id_token";
 
 const SHORT_MAX_AGE = 60 * 10; // 10 minutes — OAuth state lives briefly
 const LONG_MAX_AGE = 60 * 60 * 24 * 30; // 30 days — refresh token lifetime
@@ -26,7 +29,7 @@ const LONG_MAX_AGE = 60 * 60 * 24 * 30; // 30 days — refresh token lifetime
  * for plain http://localhost dev (which never receives Shopify redirects
  * anyway because Shopify rejects http redirect URIs).
  */
-const SECURE = process.env.NEXT_PUBLIC_SITE_URL?.startsWith("https://") ?? false;
+const SECURE = APP_BASE_URL.startsWith("https://");
 
 // ---------------------------------------------------------------------------
 // Auth state (PKCE flow — written at login start, cleared at callback)
@@ -74,6 +77,8 @@ export async function clearAuthState(): Promise<void> {
 export interface CustomerTokens {
   accessToken: string;
   expiresAt: number; // ms since epoch
+  /** OIDC ID token, when available — used as the logout `id_token_hint`. */
+  idToken?: string;
   refreshToken: string;
 }
 
@@ -101,6 +106,15 @@ export async function setCustomerTokens(tokens: CustomerTokens): Promise<void> {
     value: String(tokens.expiresAt),
     ...common,
   });
+  // Only (re)write the id_token when present — a refresh response may omit it,
+  // and we want to preserve the login id_token rather than clobber it.
+  if (tokens.idToken) {
+    store.set({
+      name: ID_TOKEN_COOKIE,
+      value: tokens.idToken,
+      ...common,
+    });
+  }
 }
 
 export async function getCustomerTokens(): Promise<CustomerTokens | null> {
@@ -111,7 +125,12 @@ export async function getCustomerTokens(): Promise<CustomerTokens | null> {
   if (!(accessToken && refreshToken && expiresAtRaw)) {
     return null;
   }
-  return { accessToken, expiresAt: Number(expiresAtRaw), refreshToken };
+  return {
+    accessToken,
+    expiresAt: Number(expiresAtRaw),
+    idToken: store.get(ID_TOKEN_COOKIE)?.value,
+    refreshToken,
+  };
 }
 
 export async function clearCustomerTokens(): Promise<void> {
@@ -119,6 +138,7 @@ export async function clearCustomerTokens(): Promise<void> {
   store.delete(ACCESS_TOKEN_COOKIE);
   store.delete(REFRESH_TOKEN_COOKIE);
   store.delete(EXPIRES_AT_COOKIE);
+  store.delete(ID_TOKEN_COOKIE);
 }
 
 /** Returns true if the stored access token is still valid (with 60-second buffer). */

@@ -22,7 +22,7 @@ const EMPTY_CART: NormalizedCart = {
   checkoutUrl: null,
   itemCount: 0,
   items: [],
-  source: "convex",
+  source: "shopify",
   subtotalCents: 0,
 };
 
@@ -30,6 +30,9 @@ interface CartContextValue {
   addItem: (merchandiseId: string, quantity?: number) => void;
   cart: NormalizedCart;
   clearCart: () => void;
+  /** Last failed cart operation, if any — lets the UI show a message instead
+   * of the whole app crashing when a server action throws. */
+  error: string | null;
   isPending: boolean;
   refresh: () => void;
   removeItem: (lineId: string) => void;
@@ -40,46 +43,50 @@ const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<NormalizedCart>(EMPTY_CART);
+  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const refresh = useCallback(() => {
+  // Wraps a cart server action so a failure surfaces as `error` state rather
+  // than an unhandled rejection that bubbles to the error boundary and takes
+  // down the page.
+  const run = useCallback((op: () => Promise<NormalizedCart>) => {
     startTransition(async () => {
-      const fresh = await getCartAction();
-      setCart(fresh);
+      try {
+        const next = await op();
+        setCart(next);
+        setError(null);
+      } catch (e) {
+        // The server already logs the throw; keep the cart usable and surface a
+        // message instead of letting the rejection crash the page.
+        setError(e instanceof Error ? e.message : "Cart operation failed.");
+      }
     });
   }, []);
+
+  const refresh = useCallback(() => run(() => getCartAction()), [run]);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
-  const addItem = useCallback((merchandiseId: string, quantity = 1) => {
-    startTransition(async () => {
-      const next = await addLineAction(merchandiseId, quantity);
-      setCart(next);
-    });
-  }, []);
+  const addItem = useCallback(
+    (merchandiseId: string, quantity = 1) =>
+      run(() => addLineAction(merchandiseId, quantity)),
+    [run]
+  );
 
-  const updateQuantity = useCallback((lineId: string, quantity: number) => {
-    startTransition(async () => {
-      const next = await updateLineAction(lineId, quantity);
-      setCart(next);
-    });
-  }, []);
+  const updateQuantity = useCallback(
+    (lineId: string, quantity: number) =>
+      run(() => updateLineAction(lineId, quantity)),
+    [run]
+  );
 
-  const removeItem = useCallback((lineId: string) => {
-    startTransition(async () => {
-      const next = await removeLineAction(lineId);
-      setCart(next);
-    });
-  }, []);
+  const removeItem = useCallback(
+    (lineId: string) => run(() => removeLineAction(lineId)),
+    [run]
+  );
 
-  const clearCart = useCallback(() => {
-    startTransition(async () => {
-      const next = await clearCartAction();
-      setCart(next);
-    });
-  }, []);
+  const clearCart = useCallback(() => run(() => clearCartAction()), [run]);
 
   return (
     <CartContext.Provider
@@ -87,6 +94,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         addItem,
         cart,
         clearCart,
+        error,
         isPending,
         refresh,
         removeItem,
