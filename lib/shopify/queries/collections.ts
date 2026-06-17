@@ -1,6 +1,7 @@
 import type { FetchOptions } from "@/lib/shopify/client";
 import { shopifyFetch } from "@/lib/shopify/client";
 import { COLLECTION_FRAGMENT, PRODUCT_FRAGMENT } from "@/lib/shopify/fragments";
+import { MARKET_COUNTRY } from "@/lib/shopify/market";
 import type {
   CollectionConnection,
   ProductConnection,
@@ -10,10 +11,34 @@ import type {
 const COLLECTION_BY_HANDLE_QUERY = /* GraphQL */ `
   ${COLLECTION_FRAGMENT}
   ${PRODUCT_FRAGMENT}
-  query CollectionByHandle($handle: String!, $first: Int!, $after: String) {
+  query CollectionByHandle(
+    $handle: String!
+    $first: Int!
+    $after: String
+    $sortKey: ProductCollectionSortKeys
+    $reverse: Boolean
+    $filters: [ProductFilter!]
+  ) @inContext(country: ${MARKET_COUNTRY}) {
     collection(handle: $handle) {
       ...CollectionFields
-      products(first: $first, after: $after) {
+      products(
+        first: $first
+        after: $after
+        sortKey: $sortKey
+        reverse: $reverse
+        filters: $filters
+      ) {
+        filters {
+          id
+          label
+          type
+          values {
+            id
+            label
+            count
+            input
+          }
+        }
         nodes {
           ...ProductFields
         }
@@ -45,8 +70,18 @@ export interface CollectionByHandleResult {
   collection: (ShopifyCollection & { products: ProductConnection }) | null;
 }
 
+/** A single `ProductFilter` input object passed straight to the Storefront API. */
+export type ProductFilterInput = Record<string, unknown>;
+
 export async function collectionByHandle(
-  args: { handle: string; first: number; after?: string },
+  args: {
+    handle: string;
+    first: number;
+    after?: string;
+    sortKey?: string;
+    reverse?: boolean;
+    filters?: ProductFilterInput[];
+  },
   options?: FetchOptions
 ): Promise<CollectionByHandleResult["collection"]> {
   const data = await shopifyFetch<CollectionByHandleResult>(
@@ -55,6 +90,9 @@ export async function collectionByHandle(
       handle: args.handle,
       first: args.first,
       after: args.after ?? null,
+      sortKey: args.sortKey ?? null,
+      reverse: args.reverse ?? null,
+      filters: args.filters ?? null,
     },
     options
   );

@@ -20,7 +20,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const fitments = await getFitmentsForProduct(product.slug);
 
   return (
-    <div className="pt-32 md:pt-40">
+    <div className="pt-24 md:pt-28">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-center gap-2 text-gray-400 text-sm">
           <Link className="hover:text-gray-900" href="/shop">

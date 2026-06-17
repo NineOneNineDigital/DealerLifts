@@ -34,7 +34,6 @@ export const PRODUCT_FRAGMENT = /* GraphQL */ `
         sku
         title
         availableForSale
-        quantityAvailable
         price {
           amount
           currencyCode

@@ -1,75 +1,22 @@
-import type { Icon } from "@tabler/icons-react";
-import {
-  IconBolt,
-  IconCar,
-  IconCarSuv,
-  IconCompass,
-  IconSettings,
-  IconShieldCheck,
-  IconTool,
-  IconWind,
-} from "@tabler/icons-react";
 import Link from "next/link";
 
 interface Category {
-  gradient: string;
   handle: string;
-  icon: Icon;
   name: string;
 }
 
 // Curated from real, well-stocked collections (handles verified against the
-// storefront). Collections carry no images, so tiles use the gradient+icon
-// treatment, matching Shop by Build.
+// storefront). Rendered as typographic industrial cards rather than imagery —
+// consistent, branded, and resilient to catalog changes.
 const CATEGORIES: Category[] = [
-  {
-    gradient: "from-blue-500 to-blue-700",
-    handle: "suspension",
-    icon: IconCarSuv,
-    name: "Suspension",
-  },
-  {
-    gradient: "from-cyan-500 to-teal-700",
-    handle: "air-suspension-kits",
-    icon: IconWind,
-    name: "Air Suspension",
-  },
-  {
-    gradient: "from-violet-500 to-indigo-700",
-    handle: "coilovers",
-    icon: IconSettings,
-    name: "Coilovers",
-  },
-  {
-    gradient: "from-slate-600 to-zinc-800",
-    handle: "bumpers-steel",
-    icon: IconShieldCheck,
-    name: "Bumpers",
-  },
-  {
-    gradient: "from-amber-500 to-orange-600",
-    handle: "lights",
-    icon: IconBolt,
-    name: "Lighting",
-  },
-  {
-    gradient: "from-emerald-500 to-green-700",
-    handle: "roof-rack",
-    icon: IconCompass,
-    name: "Roof Racks",
-  },
-  {
-    gradient: "from-stone-600 to-stone-800",
-    handle: "running-boards",
-    icon: IconCar,
-    name: "Running Boards",
-  },
-  {
-    gradient: "from-rose-500 to-red-700",
-    handle: "air-compressors",
-    icon: IconTool,
-    name: "Air Compressors",
-  },
+  { handle: "suspension", name: "Suspension" },
+  { handle: "air-suspension-kits", name: "Air Suspension" },
+  { handle: "coilovers", name: "Coilovers" },
+  { handle: "bumpers-steel", name: "Bumpers" },
+  { handle: "lights", name: "Lighting" },
+  { handle: "roof-rack", name: "Roof Racks" },
+  { handle: "running-boards", name: "Running Boards" },
+  { handle: "air-compressors", name: "Air Compressors" },
 ];
 
 export function CategoryGrid() {
@@ -84,24 +31,26 @@ export function CategoryGrid() {
         </p>
       </div>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-        {CATEGORIES.map(({ gradient, handle, icon: CatIcon, name }) => (
+        {CATEGORIES.map(({ handle, name }, index) => (
           <Link
-            className="group relative aspect-[4/3] overflow-hidden rounded-xl shadow-sm transition-all hover:shadow-lg"
+            className="group relative flex aspect-[4/3] flex-col justify-between overflow-hidden rounded-xl border border-white/10 bg-neutral-900 p-4 transition-colors duration-300 hover:border-primary"
             href={`/shop/categories/${handle}`}
             key={handle}
           >
-            <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`}>
-              <CatIcon
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white/30 transition-transform duration-500 group-hover:scale-110"
-                size={72}
-              />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 p-4">
-              <h3 className="font-bold font-heading text-base text-white leading-tight">
+            {/* Left accent bar that grows on hover */}
+            <span
+              aria-hidden
+              className="absolute top-0 left-0 h-full w-1 origin-top scale-y-0 bg-primary transition-transform duration-300 group-hover:scale-y-100"
+            />
+            <span className="font-condensed text-sm text-white/30 tabular-nums">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <div>
+              <h3 className="font-bold font-condensed text-2xl text-white uppercase leading-none tracking-wide">
                 {name}
               </h3>
-              <p className="mt-0.5 font-medium text-white/80 text-xs">
+              <span className="mt-2 block h-0.5 w-8 bg-primary transition-all duration-300 group-hover:w-14" />
+              <p className="mt-2 font-medium text-white/40 text-xs uppercase tracking-wider transition-colors group-hover:text-white/70">
                 Shop now &rarr;
               </p>
             </div>
