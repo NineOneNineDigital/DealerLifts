@@ -16,26 +16,10 @@ import { VehicleSelector } from "@/components/store/VehicleSelector";
 import { listBrands, listNewProducts } from "@/lib/store/source";
 
 const VALUE_PROPS = [
-  {
-    icon: IconTruck,
-    title: "Free Shipping",
-    subtitle: "On orders over $99",
-  },
-  {
-    icon: IconRefresh,
-    title: "Easy Returns",
-    subtitle: "30-day hassle-free returns",
-  },
-  {
-    icon: IconHeadset,
-    title: "Expert Support",
-    subtitle: "Real techs, real answers",
-  },
-  {
-    icon: IconShieldCheck,
-    title: "Secure Checkout",
-    subtitle: "256-bit SSL encryption",
-  },
+  { icon: IconTruck, title: "Fast Shipping" },
+  { icon: IconRefresh, title: "Easy Returns" },
+  { icon: IconHeadset, title: "Expert Support" },
+  { icon: IconShieldCheck, title: "Secure Checkout" },
 ];
 
 export default async function StorePage() {
@@ -52,22 +36,17 @@ export default async function StorePage() {
       <div className="border-gray-800 border-b bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 divide-x divide-gray-800 md:grid-cols-4">
-            {VALUE_PROPS.map(({ icon: Icon, title, subtitle }) => (
+            {VALUE_PROPS.map(({ icon: Icon, title }) => (
               <div
-                className="flex items-center gap-3 px-4 py-4 md:py-5"
+                className="flex items-center justify-center gap-3 px-4 py-4 md:py-5"
                 key={title}
               >
                 <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#077BFF]/15">
                   <Icon className="text-[#077BFF]" size={18} />
                 </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-sm text-white leading-tight">
-                    {title}
-                  </p>
-                  <p className="mt-0.5 truncate text-gray-400 text-xs">
-                    {subtitle}
-                  </p>
-                </div>
+                <p className="font-semibold text-base text-white leading-tight md:text-lg">
+                  {title}
+                </p>
               </div>
             ))}
           </div>

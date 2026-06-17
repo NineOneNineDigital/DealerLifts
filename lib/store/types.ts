@@ -48,6 +48,28 @@ export interface NormalizedCategory {
   source: StorefrontSource;
 }
 
+export type ProductSort = "newest" | "price-low" | "price-high" | "name";
+
+export interface StoreFacetValue {
+  count: number;
+  id: string;
+  /** Opaque `ProductFilter` JSON from Shopify — round-tripped to apply the filter. */
+  input: string;
+  label: string;
+}
+
+export interface StoreFacet {
+  id: string;
+  label: string;
+  type: "LIST" | "PRICE_RANGE" | "BOOLEAN";
+  values: StoreFacetValue[];
+}
+
+export interface CategoryProductsResult {
+  facets: StoreFacet[];
+  products: NormalizedProduct[];
+}
+
 export interface NormalizedInventory {
   isInStock: boolean;
   productId: string;

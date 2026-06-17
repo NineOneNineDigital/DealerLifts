@@ -1,11 +1,19 @@
 import type { FetchOptions } from "@/lib/shopify/client";
 import { shopifyFetch } from "@/lib/shopify/client";
 import { PRODUCT_FRAGMENT } from "@/lib/shopify/fragments";
-import type { ProductConnection, ShopifyProduct } from "@/lib/shopify/types";
+import { MARKET_COUNTRY } from "@/lib/shopify/market";
+import type {
+  ProductConnection,
+  ShopifyFilter,
+  ShopifyProduct,
+} from "@/lib/shopify/types";
 
+// Query availability in the store's market so `availableForSale` reflects
+// per-market *fulfillable* inventory — keeping the app's stock state in sync
+// with checkout. See lib/shopify/market.ts.
 const LIST_PRODUCTS_QUERY = /* GraphQL */ `
   ${PRODUCT_FRAGMENT}
-  query ListProducts($first: Int!, $after: String) {
+  query ListProducts($first: Int!, $after: String) @inContext(country: ${MARKET_COUNTRY}) {
     products(first: $first, after: $after) {
       nodes {
         ...ProductFields
@@ -20,7 +28,7 @@ const LIST_PRODUCTS_QUERY = /* GraphQL */ `
 
 const PRODUCT_BY_HANDLE_QUERY = /* GraphQL */ `
   ${PRODUCT_FRAGMENT}
-  query ProductByHandle($handle: String!) {
+  query ProductByHandle($handle: String!) @inContext(country: ${MARKET_COUNTRY}) {
     product(handle: $handle) {
       ...ProductFields
     }
@@ -53,7 +61,7 @@ export async function productByHandle(
 
 const SEARCH_PRODUCTS_QUERY = /* GraphQL */ `
   ${PRODUCT_FRAGMENT}
-  query SearchProducts($query: String!, $first: Int!, $after: String) {
+  query SearchProducts($query: String!, $first: Int!, $after: String) @inContext(country: ${MARKET_COUNTRY}) {
     products(query: $query, first: $first, after: $after, sortKey: RELEVANCE) {
       nodes {
         ...ProductFields
@@ -80,6 +88,95 @@ export async function searchProducts(
     options
   );
   return data.products;
+}
+
+// The `search` connection (unlike the `products(query:)` connection) supports
+// Storefront faceting (`productFilters`) while still accepting the same search
+// query DSL (`vendor:"…"`, `tag:…*`). This powers filters on the search, brand,
+// and vehicle listing pages.
+const SEARCH_WITH_FACETS_QUERY = /* GraphQL */ `
+  ${PRODUCT_FRAGMENT}
+  query SearchWithFacets(
+    $query: String!
+    $first: Int!
+    $after: String
+    $sortKey: SearchSortKeys
+    $reverse: Boolean
+    $productFilters: [ProductFilter!]
+  ) @inContext(country: ${MARKET_COUNTRY}) {
+    search(
+      query: $query
+      first: $first
+      after: $after
+      types: PRODUCT
+      sortKey: $sortKey
+      reverse: $reverse
+      productFilters: $productFilters
+    ) {
+      productFilters {
+        id
+        label
+        type
+        values {
+          id
+          label
+          count
+          input
+        }
+      }
+      nodes {
+        ... on Product {
+          ...ProductFields
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+`;
+
+export interface SearchWithFacetsResult {
+  filters: ShopifyFilter[];
+  nodes: ShopifyProduct[];
+  pageInfo: { endCursor: string | null; hasNextPage: boolean };
+}
+
+export async function searchWithFacets(
+  args: {
+    query: string;
+    first: number;
+    after?: string;
+    sortKey?: string;
+    reverse?: boolean;
+    productFilters?: Record<string, unknown>[];
+  },
+  options?: FetchOptions
+): Promise<SearchWithFacetsResult> {
+  const data = await shopifyFetch<{
+    search: {
+      productFilters: ShopifyFilter[];
+      nodes: ShopifyProduct[];
+      pageInfo: { endCursor: string | null; hasNextPage: boolean };
+    };
+  }>(
+    SEARCH_WITH_FACETS_QUERY,
+    {
+      query: args.query,
+      first: args.first,
+      after: args.after ?? null,
+      sortKey: args.sortKey ?? null,
+      reverse: args.reverse ?? null,
+      productFilters: args.productFilters ?? null,
+    },
+    options
+  );
+  return {
+    filters: data.search.productFilters,
+    nodes: data.search.nodes,
+    pageInfo: data.search.pageInfo,
+  };
 }
 
 // ---------------------------------------------------------------------------

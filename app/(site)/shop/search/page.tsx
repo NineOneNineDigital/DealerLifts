@@ -1,19 +1,28 @@
 import Link from "next/link";
+import { CategoryFilters } from "@/components/store/CategoryFilters";
+import { CategorySort } from "@/components/store/CategorySort";
 import { ProductCard } from "@/components/store/ProductCard";
 import { ProductGrid } from "@/components/store/ProductGrid";
 import { SearchBar } from "@/components/store/SearchBar";
-import { searchProducts } from "@/lib/store/source";
+import { parseFilters, parseSort } from "@/lib/store/filter-params";
+import { searchProductsFiltered } from "@/lib/store/source";
 
 interface SearchPageProps {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const { q } = await searchParams;
-  const results = q ? await searchProducts(q, 24) : [];
+  const sp = await searchParams;
+  const q = typeof sp.q === "string" ? sp.q : "";
+  const sort = parseSort(sp.sort);
+  const filters = parseFilters(sp.filter);
+
+  const { products, facets } = q
+    ? await searchProductsFiltered(q, { filters, sort })
+    : { facets: [], products: [] };
 
   return (
-    <div className="pt-32 md:pt-40">
+    <div className="pt-24 md:pt-28">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center gap-2 text-gray-400 text-sm">
           <Link className="hover:text-gray-900" href="/shop">
@@ -24,23 +33,32 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         </div>
 
         <div className="mb-8">
-          <SearchBar defaultValue={q ?? ""} />
+          <SearchBar defaultValue={q} />
         </div>
 
-        {q && (
-          <p className="mb-6 text-gray-500 text-sm">
-            {`${results.length} result${results.length !== 1 ? "s" : ""} for "${q}"`}
-          </p>
-        )}
+        {products.length > 0 ? (
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[220px_1fr]">
+            <div className="lg:sticky lg:top-28 lg:self-start">
+              <CategoryFilters facets={facets} />
+            </div>
 
-        {results.length > 0 && (
-          <ProductGrid>
-            {results.map((p) => (
-              <ProductCard key={p.slug} product={p} />
-            ))}
-          </ProductGrid>
-        )}
-        {q && results.length === 0 && (
+            <div>
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <p className="text-gray-500 text-sm">
+                  {`${products.length} result${products.length !== 1 ? "s" : ""} for "${q}"`}
+                </p>
+                <CategorySort mode="search" />
+              </div>
+              <ProductGrid>
+                {products.map((p) => (
+                  <ProductCard key={p.slug} product={p} />
+                ))}
+              </ProductGrid>
+            </div>
+          </div>
+        ) : null}
+
+        {q && products.length === 0 ? (
           <div className="py-16 text-center">
             <p className="mb-4 text-gray-500">
               No products found for &quot;{q}&quot;
@@ -52,7 +70,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               Browse all products
             </Link>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

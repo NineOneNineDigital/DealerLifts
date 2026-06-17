@@ -2,13 +2,14 @@ import { IconSearch } from "@tabler/icons-react";
 import Image from "next/image";
 import Link from "next/link";
 
+// Handles verified against synced Turn14 collections (see CategoryGrid).
 const QUICK_CATEGORIES = [
   { href: "/shop/categories/suspension", label: "Suspension" },
-  { href: "/shop/categories/brakes", label: "Brakes" },
-  { href: "/shop/categories/exhaust", label: "Exhaust" },
-  { href: "/shop/categories/wheels-tires", label: "Wheels & Tires" },
-  { href: "/shop/categories/lighting", label: "Lighting" },
-  { href: "/shop/categories/engine", label: "Engine" },
+  { href: "/shop/categories/air-suspension-kits", label: "Air Suspension" },
+  { href: "/shop/categories/coilovers", label: "Coilovers" },
+  { href: "/shop/categories/bumpers-steel", label: "Bumpers" },
+  { href: "/shop/categories/lights", label: "Lighting" },
+  { href: "/shop/categories/roof-rack", label: "Roof Racks" },
 ];
 
 export function StoreHero() {

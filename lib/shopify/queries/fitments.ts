@@ -1,11 +1,12 @@
 import type { FetchOptions } from "@/lib/shopify/client";
 import { shopifyFetch } from "@/lib/shopify/client";
 import { PRODUCT_FRAGMENT } from "@/lib/shopify/fragments";
+import { MARKET_COUNTRY } from "@/lib/shopify/market";
 import type { ProductConnection } from "@/lib/shopify/types";
 
 const PRODUCTS_BY_VEHICLE_TAG_QUERY = /* GraphQL */ `
   ${PRODUCT_FRAGMENT}
-  query ProductsByVehicleTag($q: String!, $first: Int!, $after: String) {
+  query ProductsByVehicleTag($q: String!, $first: Int!, $after: String) @inContext(country: ${MARKET_COUNTRY}) {
     products(query: $q, first: $first, after: $after) {
       nodes {
         ...ProductFields

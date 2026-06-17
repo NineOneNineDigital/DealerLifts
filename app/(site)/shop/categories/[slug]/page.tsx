@@ -1,19 +1,35 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CategoryFilters } from "@/components/store/CategoryFilters";
+import { CategorySort } from "@/components/store/CategorySort";
 import { ProductCard } from "@/components/store/ProductCard";
 import { ProductGrid } from "@/components/store/ProductGrid";
 import { SearchBar } from "@/components/store/SearchBar";
-import { getCategoryBySlug, listProductsByCategory } from "@/lib/store/source";
+import { parseFilters, parseSort } from "@/lib/store/filter-params";
+import {
+  getCategoryBySlug,
+  listProductsByCategoryFiltered,
+} from "@/lib/store/source";
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function CategoryPage({ params }: CategoryPageProps) {
+export default async function CategoryPage({
+  params,
+  searchParams,
+}: CategoryPageProps) {
   const { slug } = await params;
-  const [category, products] = await Promise.all([
+  const sp = await searchParams;
+
+  const sort = parseSort(sp.sort);
+  const filters = parseFilters(sp.filter);
+  const vehiclePrefix = typeof sp.fit === "string" ? sp.fit : undefined;
+
+  const [category, { products, facets }] = await Promise.all([
     getCategoryBySlug(slug),
-    listProductsByCategory(slug),
+    listProductsByCategoryFiltered(slug, { filters, sort, vehiclePrefix }),
   ]);
 
   if (!category) {
@@ -21,7 +37,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   }
 
   return (
-    <div className="pt-32 md:pt-40">
+    <div className="pt-24 md:pt-28">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center gap-2 text-gray-400 text-sm">
           <Link className="hover:text-gray-900" href="/shop">
@@ -38,17 +54,33 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           <SearchBar />
         </div>
 
-        {products.length === 0 ? (
-          <p className="text-gray-500 text-sm">
-            No products found in this category.
-          </p>
-        ) : (
-          <ProductGrid>
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </ProductGrid>
-        )}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[220px_1fr]">
+          <div className="lg:sticky lg:top-28 lg:self-start">
+            <CategoryFilters enableVehicleFilter facets={facets} />
+          </div>
+
+          <div>
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <p className="text-gray-500 text-sm">
+                {products.length}{" "}
+                {products.length === 1 ? "product" : "products"}
+              </p>
+              <CategorySort />
+            </div>
+
+            {products.length === 0 ? (
+              <p className="text-gray-500 text-sm">
+                No products match these filters.
+              </p>
+            ) : (
+              <ProductGrid>
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </ProductGrid>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

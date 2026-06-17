@@ -1,4 +1,5 @@
 import { unstable_cache as nextCache } from "next/cache";
+import type { ProductFilterInput } from "@/lib/shopify/queries/collections";
 import {
   collectionByHandle,
   listCollections,
@@ -7,15 +8,24 @@ import {
   listAllVendors,
   listProducts,
   productByHandle,
+  searchWithFacets,
   searchProducts as shopifySearchProducts,
 } from "@/lib/shopify/queries/products";
-import type { ShopifyCollection, ShopifyProduct } from "@/lib/shopify/types";
+import type {
+  ShopifyCollection,
+  ShopifyFilter,
+  ShopifyProduct,
+} from "@/lib/shopify/types";
+import { vehicleTagPrefix } from "@/lib/store/fitments";
 import type {
   BrandWithCategories,
+  CategoryProductsResult,
   NormalizedBrand,
   NormalizedCategory,
   NormalizedInventory,
   NormalizedProduct,
+  ProductSort,
+  StoreFacet,
 } from "@/lib/store/types";
 
 const NO_STORE = { cache: "no-store" as const };
@@ -252,6 +262,183 @@ export async function listProductsByCategory(
     NO_STORE
   );
   return c?.products.nodes.map(mapProduct) ?? [];
+}
+
+// Storefront `ProductCollectionSortKeys` mapping for the UI sort options.
+function sortToKey(sort?: ProductSort): {
+  sortKey?: string;
+  reverse?: boolean;
+} {
+  switch (sort) {
+    case "price-low":
+      return { sortKey: "PRICE", reverse: false };
+    case "price-high":
+      return { sortKey: "PRICE", reverse: true };
+    case "name":
+      return { sortKey: "TITLE", reverse: false };
+    case "newest":
+      return { sortKey: "CREATED", reverse: true };
+    default:
+      return {};
+  }
+}
+
+function mapFacet(f: ShopifyFilter): StoreFacet {
+  return {
+    id: f.id,
+    label: f.label,
+    type: f.type,
+    values: f.values.map((v) => ({
+      count: v.count,
+      id: v.id,
+      input: v.input,
+      label: v.label,
+    })),
+  };
+}
+
+// Facets we never surface. The Tags facet (`filter.p.tag`) is just EasySearch
+// fitment tags (`…-esi…`) and internal flags — noise; vehicle fitment has its
+// own dedicated filter. Disable "More filters" in Search & Discovery to also
+// stop Shopify indexing it.
+const HIDDEN_FACET_IDS = new Set(["filter.p.tag"]);
+
+function mapFacets(filters: ShopifyFilter[]): StoreFacet[] {
+  return filters.filter((f) => !HIDDEN_FACET_IDS.has(f.id)).map(mapFacet);
+}
+
+// When a vehicle filter is active we post-filter the collection's products by
+// EasySearch tag prefix (the `-esi{id}` suffix makes the tags impossible to
+// match through the native `ProductFilter` API), so over-fetch to a safe cap.
+const VEHICLE_FILTER_FETCH_CAP = 250;
+
+export interface CategoryFilterArgs {
+  filters?: ProductFilterInput[];
+  limit?: number;
+  sort?: ProductSort;
+  /** Vehicle tag prefix (e.g. `2024-ford-f150-`); post-filtered server-side. */
+  vehiclePrefix?: string;
+}
+
+/**
+ * Collection browse with server-side Storefront faceting + sorting. Returns the
+ * filtered products plus the facets Shopify exposes for the collection (which
+ * depend on the Search & Discovery app config — Availability and Price today,
+ * Vendor/Product type once enabled).
+ */
+export async function listProductsByCategoryFiltered(
+  categorySlug: string,
+  args: CategoryFilterArgs = {}
+): Promise<CategoryProductsResult> {
+  const limit = args.limit ?? 24;
+  const { sortKey, reverse } = sortToKey(args.sort);
+  const overFetch = Boolean(args.vehiclePrefix);
+  const c = await collectionByHandle(
+    {
+      handle: categorySlug,
+      first: overFetch ? VEHICLE_FILTER_FETCH_CAP : limit,
+      sortKey,
+      reverse,
+      filters: args.filters,
+    },
+    NO_STORE
+  );
+  if (!c) {
+    return { facets: [], products: [] };
+  }
+  let nodes = c.products.nodes;
+  if (args.vehiclePrefix) {
+    const prefix = args.vehiclePrefix;
+    nodes = nodes
+      .filter((p) => p.tags.some((t) => t.startsWith(prefix)))
+      .slice(0, limit);
+  }
+  return {
+    facets: mapFacets(c.products.filters ?? []),
+    products: nodes.map(mapProduct),
+  };
+}
+
+// `SearchSortKeys` only supports RELEVANCE + PRICE, so search-based listings
+// (search / brand / vehicle) offer a reduced sort set vs. collections.
+function searchSortToKey(sort?: ProductSort): {
+  sortKey?: string;
+  reverse?: boolean;
+} {
+  switch (sort) {
+    case "price-low":
+      return { sortKey: "PRICE", reverse: false };
+    case "price-high":
+      return { sortKey: "PRICE", reverse: true };
+    default:
+      return {};
+  }
+}
+
+export interface SearchFilterArgs {
+  filters?: ProductFilterInput[];
+  limit?: number;
+  sort?: ProductSort;
+}
+
+// Shared faceted listing over the Storefront `search` connection. `rawQuery` is
+// passed through verbatim (search DSL), so callers supply `vendor:"…"`,
+// `tag:…*`, or a tokenized free-text query as needed.
+async function listFromSearch(
+  rawQuery: string,
+  args: SearchFilterArgs
+): Promise<CategoryProductsResult> {
+  const { sortKey, reverse } = searchSortToKey(args.sort);
+  const res = await searchWithFacets(
+    {
+      query: rawQuery,
+      first: args.limit ?? 24,
+      sortKey,
+      reverse,
+      productFilters: args.filters,
+    },
+    NO_STORE
+  );
+  return {
+    facets: mapFacets(res.filters),
+    products: res.nodes.map(mapProduct),
+  };
+}
+
+export async function searchProductsFiltered(
+  query: string,
+  args: SearchFilterArgs = {}
+): Promise<CategoryProductsResult> {
+  const scoped = buildSearchQuery(query);
+  if (!scoped) {
+    return { facets: [], products: [] };
+  }
+  return await listFromSearch(scoped, args);
+}
+
+export async function listProductsByBrandFiltered(
+  brandSlug: string,
+  args: SearchFilterArgs = {}
+): Promise<CategoryProductsResult> {
+  const vendors = await getVendorsCached();
+  const vendor = vendors.find((v) => slugifyBrand(v.name) === brandSlug);
+  if (!vendor) {
+    return { facets: [], products: [] };
+  }
+  return listFromSearch(`vendor:"${vendor.name}"`, args);
+}
+
+export async function listProductsByVehicleFiltered(
+  vehicle: { year: number; make: string; model: string; submodel?: string },
+  args: SearchFilterArgs = {}
+): Promise<CategoryProductsResult> {
+  const prefix = vehicleTagPrefix(
+    vehicle.year,
+    vehicle.make,
+    vehicle.model,
+    vehicle.submodel
+  );
+  return await listFromSearch(`tag:${prefix}*`, args);
 }
 
 export function getInventoryByProductId(

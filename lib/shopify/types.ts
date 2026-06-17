@@ -15,7 +15,6 @@ export interface ShopifyVariant {
   compareAtPrice: Money | null;
   id: string;
   price: Money;
-  quantityAvailable: number | null;
   sku: string | null;
   title: string;
 }
@@ -42,7 +41,24 @@ export interface ShopifyProduct {
   vendor: string;
 }
 
+export interface ShopifyFilterValue {
+  count: number;
+  id: string;
+  /** Opaque JSON string — pass back verbatim as a `ProductFilter` input. */
+  input: string;
+  label: string;
+}
+
+export interface ShopifyFilter {
+  id: string;
+  label: string;
+  type: "LIST" | "PRICE_RANGE" | "BOOLEAN";
+  values: ShopifyFilterValue[];
+}
+
 export interface ProductConnection {
+  /** Facets — only returned by `collection.products` / `search`, hence optional. */
+  filters?: ShopifyFilter[];
   nodes: ShopifyProduct[];
   pageInfo: {
     hasNextPage: boolean;
