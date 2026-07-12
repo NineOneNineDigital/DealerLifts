@@ -50,8 +50,13 @@ file. Set values directly in Vercel Project Settings → Environment Variables.
 
 The vars validated at startup (fail-fast, see `lib/env.ts` + `instrumentation.ts`)
 are marked **[validated]**. A deploy missing any of these throws
-`Missing required environment variable(s): ...` in the boot logs instead of
-silently serving broken pages.
+`Missing required environment variable(s): ...` when the server initializes,
+instead of silently serving broken pages.
+
+> **Note:** the check runs at server cold-start (`instrumentation.ts` `register()`),
+> not at build time. A mis-scoped var still produces a **green Vercel build**;
+> it then 500s on first request with the error above. After a deploy, verify by
+> hitting the URL and checking the **runtime logs**, not just the build status.
 
 ### Production scope (live store)
 
@@ -78,7 +83,7 @@ silently serving broken pages.
 - `NEXT_PUBLIC_TAWK_PROPERTY_ID`
 - `NEXT_PUBLIC_TAWK_WIDGET_ID`
 - `SHOPIFY_STOREFRONT_API_VERSION` — has a safe default in `lib/shopify/client.ts`, not startup-validated
-- `SHOPIFY_ADMIN_CLIENT_ID`, `SHOPIFY_ADMIN_CLIENT_SECRET` — per-store if the Admin API is used server-side; otherwise scope to Production/Preview individually to match each store
+- `SHOPIFY_ADMIN_CLIENT_ID`, `SHOPIFY_ADMIN_CLIENT_SECRET` — **currently unused by the frontend** (present in `.env.local`/`.env.example` only; no references in `lib`/`app`). Provision only if/when server-side Admin API calls are added; if used, they are per-store, so scope to Production/Preview individually to match each store.
 
 ---
 

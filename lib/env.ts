@@ -8,8 +8,15 @@
  * Keep this list to launch-critical vars only. Intentionally omitted:
  *  - SHOPIFY_STOREFRONT_API_VERSION — has a safe default in lib/shopify/client.ts.
  *  - HYGRAPH_CONTENT_API_READ_TOKEN — optional by design; lib/hygraph.ts only
- *    adds the Authorization header when it is set, so anonymous reads work
- *    without it. Requiring it here would break local dev and anonymous setups.
+ *    adds the Authorization header when it is set, so anonymous reads are a
+ *    valid runtime mode (not merely a dev convenience). Requiring it would
+ *    break legitimately-anonymous Hygraph setups.
+ *
+ * NEXT_PUBLIC_SITE_URL is required-by-choice even though lib/shopify/customer-oauth.ts
+ * falls back to "http://localhost:3000" when it is unset: that fallback is a
+ * dev convenience, and silently using it in production would break customer
+ * OAuth redirects. Failing fast is exactly the intent. .env.example ships a
+ * localhost default so local dev is unaffected.
  */
 const REQUIRED_SERVER_ENV = [
   "NEXT_PUBLIC_SITE_URL",
