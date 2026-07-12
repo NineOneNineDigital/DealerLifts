@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   // response — which ngrok surfaces as ERR_NGROK_3004.
   allowedDevOrigins: [
     "*.ngrok-free.app",
+    "*.ngrok-free.dev",
     "*.ngrok.app",
     "*.ngrok.io",
     "*.trycloudflare.com",
@@ -17,6 +18,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       allowedOrigins: [
         "*.ngrok-free.app",
+        "*.ngrok-free.dev",
         "*.ngrok.app",
         "*.ngrok.io",
         "*.trycloudflare.com",
