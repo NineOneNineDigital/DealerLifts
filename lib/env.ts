@@ -5,8 +5,11 @@
  * deploy (e.g. Vercel Preview missing the staging Shopify token) errors
  * loudly at boot instead of silently serving broken pages.
  *
- * Keep this list to launch-critical vars only. SHOPIFY_STOREFRONT_API_VERSION
- * is intentionally omitted — it has a safe default in lib/shopify/client.ts.
+ * Keep this list to launch-critical vars only. Intentionally omitted:
+ *  - SHOPIFY_STOREFRONT_API_VERSION — has a safe default in lib/shopify/client.ts.
+ *  - HYGRAPH_CONTENT_API_READ_TOKEN — optional by design; lib/hygraph.ts only
+ *    adds the Authorization header when it is set, so anonymous reads work
+ *    without it. Requiring it here would break local dev and anonymous setups.
  */
 const REQUIRED_SERVER_ENV = [
   "NEXT_PUBLIC_SITE_URL",
@@ -16,7 +19,6 @@ const REQUIRED_SERVER_ENV = [
   "SHOPIFY_CUSTOMER_ACCOUNT_API_URL",
   "SHOPIFY_CUSTOMER_ACCOUNT_AUTH_URL",
   "HYGRAPH_CONTENT_API_URL",
-  "HYGRAPH_CONTENT_API_READ_TOKEN",
 ] as const;
 
 export function assertServerEnv(env: NodeJS.ProcessEnv = process.env): void {
