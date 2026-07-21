@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+
+import { HCAPTCHA_SITEKEY, submitToWeb3Forms } from "@/lib/forms/web3forms";
 
 interface ContactFormData {
   name: string;
@@ -12,6 +15,9 @@ interface ContactFormData {
 export function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const captchaRef = useRef<HCaptcha>(null);
   const {
     register,
     handleSubmit,
@@ -19,16 +25,33 @@ export function ContactForm() {
   } = useForm<ContactFormData>();
 
   const onSubmit = async (data: ContactFormData) => {
+    if (!captchaToken) {
+      setFailed(true);
+      return;
+    }
     setSubmitting(true);
+    setFailed(false);
     try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, type: "general" }),
-      });
-      if (res.ok) setSubmitted(true);
+      const ok = await submitToWeb3Forms(
+        process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY_CONTACT,
+        {
+          type: "general",
+          name: data.name,
+          email: data.email,
+          message: data.message,
+          "h-captcha-response": captchaToken,
+        },
+        { subject: `New contact message from ${data.name}` }
+      );
+      if (ok) {
+        setSubmitted(true);
+      } else {
+        setFailed(true);
+      }
     } finally {
       setSubmitting(false);
+      captchaRef.current?.resetCaptcha();
+      setCaptchaToken("");
     }
   };
 
@@ -82,13 +105,25 @@ export function ContactForm() {
         />
         {errors.message && <p className="text-red-400 text-xs mt-1">{errors.message.message}</p>}
       </div>
+      <HCaptcha
+        ref={captchaRef}
+        sitekey={HCAPTCHA_SITEKEY}
+        reCaptchaCompat={false}
+        onVerify={(token) => setCaptchaToken(token)}
+        onExpire={() => setCaptchaToken("")}
+      />
       <button
         type="submit"
-        disabled={submitting}
+        disabled={submitting || !captchaToken}
         className="w-full px-6 py-3 bg-[#077BFF] text-white font-heading font-bold text-sm uppercase tracking-wider rounded hover:bg-[#0565D4] transition-all duration-200 disabled:opacity-50"
       >
         {submitting ? "Sending..." : "Send Message"}
       </button>
+      {failed && (
+        <p className="text-red-500 text-sm text-center">
+          Please complete the captcha, or call us at (919) 275-8095.
+        </p>
+      )}
     </form>
   );
 }

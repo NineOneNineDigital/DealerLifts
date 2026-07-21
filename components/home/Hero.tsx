@@ -10,7 +10,7 @@ export function Hero() {
     <section className="relative z-0 flex min-h-[100svh] flex-col overflow-hidden bg-gray-950">
       {/* Background image */}
       <Image
-        alt="Dealer Lifts shop in Raleigh, NC"
+        alt="Dealer Lifts shop in Eastern NC"
         className="object-cover"
         fill
         priority
@@ -41,7 +41,7 @@ export function Hero() {
         <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-4 pt-32 pb-16 sm:px-6 lg:px-8">
           <motion.h1
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-4xl font-bold font-heading text-white text-[2.75rem] leading-[1.02] tracking-tight sm:text-6xl md:text-7xl xl:text-[5.5rem]"
+            className="max-w-4xl font-bold font-heading text-white text-[2.75rem] capitalize leading-[1.02] tracking-tight sm:text-6xl md:text-7xl xl:text-[5.5rem]"
             initial={{ opacity: 0, y: 24 }}
             transition={{ duration: 0.7, delay: 0.1 }}
           >

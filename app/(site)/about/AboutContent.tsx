@@ -47,7 +47,7 @@ export function AboutContent({ team }: Props) {
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-gray-500 text-lg">
             30+ years of turning stock trucks into something worth talking
-            about. Based in Raleigh, NC.
+            about. Based in Eastern NC.
           </p>
         </div>
       </section>
