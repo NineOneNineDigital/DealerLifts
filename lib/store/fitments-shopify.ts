@@ -100,7 +100,7 @@ const getTreeFromCrawlCached = nextCache(
         }
         const byMake = getOrCreate(tree, String(parsed.year), () => ({}));
         const byModel = getOrCreate(byMake, parsed.make, () => ({}));
-        const submodels = getOrCreate(byModel, parsed.model, () => []);
+        const submodels = getOrCreate(byModel, parsed.model, () => [] as string[]);
         if (!submodels.includes(parsed.submodel)) {
           submodels.push(parsed.submodel);
         }
