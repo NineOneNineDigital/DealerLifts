@@ -34,7 +34,7 @@ export async function generateMetadata({
     [project.year, project.make, project.model].filter(Boolean).join(" ");
   const description =
     project.projectDetails?.text?.slice(0, 160) ||
-    `Custom build by Dealer Lifts in Raleigh, NC.`;
+    `Custom build by Dealer Lifts in Eastern NC.`;
 
   return {
     title,

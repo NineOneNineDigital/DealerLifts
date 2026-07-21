@@ -5,7 +5,7 @@ import { CareersContent } from "./CareersContent";
 export const metadata: Metadata = {
   title: "Careers",
   description:
-    "Join the Dealer Lifts team. We're looking for passionate automotive technicians, fabricators, and service professionals in Raleigh, NC.",
+    "Join the Dealer Lifts team. We're looking for passionate automotive technicians, fabricators, and service professionals in Eastern NC.",
 };
 
 export const revalidate = 60;

@@ -82,7 +82,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-gray-400">
-              Premium automotive performance and off-road builds in Raleigh, NC.
+              Premium automotive performance and off-road builds in Eastern NC.
             </p>
             <div className="mt-6 flex gap-2">
               {socials.map((s) => (
@@ -156,7 +156,7 @@ export function Footer() {
                     className="mt-0.5 shrink-0 text-gray-500 transition-colors group-hover:text-[#077BFF]"
                   />
                   <span className="inline-flex items-center gap-1">
-                    Raleigh, North Carolina
+                    73 Crape Myrtle Dr, Benson, NC 27504
                     <IconArrowUpRight
                       size={13}
                       className="opacity-0 transition-opacity group-hover:opacity-100"

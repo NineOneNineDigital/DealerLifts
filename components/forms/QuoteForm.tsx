@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+
+import { HCAPTCHA_SITEKEY, submitToWeb3Forms } from "@/lib/forms/web3forms";
 
 interface QuoteFormData {
   name: string;
@@ -18,6 +21,9 @@ interface QuoteFormData {
 export function QuoteForm() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const captchaRef = useRef<HCaptcha>(null);
   const {
     register,
     handleSubmit,
@@ -25,16 +31,39 @@ export function QuoteForm() {
   } = useForm<QuoteFormData>();
 
   const onSubmit = async (data: QuoteFormData) => {
+    if (!captchaToken) {
+      setFailed(true);
+      return;
+    }
     setSubmitting(true);
+    setFailed(false);
     try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, type: "quote" }),
-      });
-      if (res.ok) setSubmitted(true);
+      const ok = await submitToWeb3Forms(
+        process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY_QUOTE,
+        {
+          type: "quote",
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          vehicle_year: data.vehicleYear,
+          vehicle_make: data.vehicleMake,
+          vehicle_model: data.vehicleModel,
+          service_type: data.serviceType,
+          budget: data.budget,
+          description: data.description,
+          "h-captcha-response": captchaToken,
+        },
+        { subject: `New quote request from ${data.name}` }
+      );
+      if (ok) {
+        setSubmitted(true);
+      } else {
+        setFailed(true);
+      }
     } finally {
       setSubmitting(false);
+      captchaRef.current?.resetCaptcha();
+      setCaptchaToken("");
     }
   };
 
@@ -191,13 +220,25 @@ export function QuoteForm() {
         </select>
       </div>
 
+      <HCaptcha
+        ref={captchaRef}
+        sitekey={HCAPTCHA_SITEKEY}
+        reCaptchaCompat={false}
+        onVerify={(token) => setCaptchaToken(token)}
+        onExpire={() => setCaptchaToken("")}
+      />
       <button
         type="submit"
-        disabled={submitting}
+        disabled={submitting || !captchaToken}
         className="w-full px-8 py-4 bg-[#077BFF] text-white font-heading font-bold text-sm uppercase tracking-wider rounded hover:bg-[#0565D4] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {submitting ? "Sending..." : "Submit Quote Request"}
       </button>
+      {failed && (
+        <p className="text-red-500 text-sm text-center">
+          Please complete the captcha, or call us at (919) 275-8095.
+        </p>
+      )}
     </form>
   );
 }

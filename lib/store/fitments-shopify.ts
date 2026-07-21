@@ -10,6 +10,7 @@ import {
   vehicleTagPrefix,
 } from "@/lib/store/fitments";
 import type { NormalizedProduct } from "@/lib/store/types";
+import ymmTree from "./ymm-data.json";
 
 const NO_STORE = { cache: "no-store" as const };
 const AGGREGATE_REVALIDATE_SECONDS = 60 * 60 * 24; // 24 hours
@@ -61,28 +62,62 @@ function mapProduct(p: ShopifyProduct): NormalizedProduct {
   };
 }
 
-const getAllFitmentsCached = nextCache(
-  async (): Promise<ParsedFitmentLite[]> => {
+/**
+ * Nested YMM tree: year -> makeSlug -> modelSlug -> submodelSlug[].
+ * Precomputed at build time into ymm-data.json (see scripts/build-ymm-tree.mjs)
+ * so the vehicle filter reads it instantly instead of crawling the whole catalog
+ * (~13s over ~87 sequential API pages) on the first request.
+ */
+type YmmTree = Record<string, Record<string, Record<string, string[]>>>;
+
+const PRECOMPUTED_TREE = ymmTree as unknown as YmmTree;
+
+/** Fallback: build the same tree from a full live crawl when ymm-data.json is
+ * empty (e.g. the build step didn't run). Cached 24h so it only runs once. */
+function getOrCreate<T>(
+  obj: Record<string, T>,
+  key: string,
+  create: () => T
+): T {
+  const existing = obj[key];
+  if (existing !== undefined) {
+    return existing;
+  }
+  const created = create();
+  obj[key] = created;
+  return created;
+}
+
+const getTreeFromCrawlCached = nextCache(
+  async (): Promise<YmmTree> => {
     const { tagSets } = await listAllProductTags();
-    const fitments: ParsedFitmentLite[] = [];
+    const tree: YmmTree = {};
     for (const tags of tagSets) {
       for (const tag of tags) {
         const parsed = parseFitmentTag(tag);
-        if (parsed) {
-          fitments.push({
-            make: parsed.make,
-            model: parsed.model,
-            submodel: parsed.submodel,
-            year: parsed.year,
-          });
+        if (!parsed) {
+          continue;
+        }
+        const byMake = getOrCreate(tree, String(parsed.year), () => ({}));
+        const byModel = getOrCreate(byMake, parsed.make, () => ({}));
+        const submodels = getOrCreate(byModel, parsed.model, () => [] as string[]);
+        if (!submodels.includes(parsed.submodel)) {
+          submodels.push(parsed.submodel);
         }
       }
     }
-    return fitments;
+    return tree;
   },
-  ["shopify-fitments-aggregate"],
+  ["shopify-ymm-tree"],
   { revalidate: AGGREGATE_REVALIDATE_SECONDS }
 );
+
+async function getYmmTree(): Promise<YmmTree> {
+  if (Object.keys(PRECOMPUTED_TREE).length > 0) {
+    return PRECOMPUTED_TREE;
+  }
+  return await getTreeFromCrawlCached();
+}
 
 function titleCase(s: string): string {
   return s
@@ -93,39 +128,36 @@ function titleCase(s: string): string {
     .join(" ");
 }
 
+function makeSlug(value: string): string {
+  return value.toLowerCase().replace(/\s+/g, "-");
+}
+
 export async function listYears(): Promise<number[]> {
-  const fitments = await getAllFitmentsCached();
-  const set = new Set<number>();
-  for (const f of fitments) {
-    set.add(f.year);
-  }
-  return Array.from(set).sort((a, b) => b - a);
+  const tree = await getYmmTree();
+  return Object.keys(tree)
+    .map(Number)
+    .sort((a, b) => b - a);
 }
 
 export async function listMakes(year: number): Promise<string[]> {
-  const fitments = await getAllFitmentsCached();
-  const set = new Set<string>();
-  for (const f of fitments) {
-    if (f.year === year) {
-      set.add(f.make);
-    }
+  const tree = await getYmmTree();
+  const makes = tree[String(year)];
+  if (!makes) {
+    return [];
   }
-  return Array.from(set).sort().map(titleCase);
+  return Object.keys(makes).sort().map(titleCase);
 }
 
 export async function listModels(
   year: number,
   make: string
 ): Promise<string[]> {
-  const fitments = await getAllFitmentsCached();
-  const m = make.toLowerCase().replace(/\s+/g, "-");
-  const set = new Set<string>();
-  for (const f of fitments) {
-    if (f.year === year && f.make === m) {
-      set.add(f.model);
-    }
+  const tree = await getYmmTree();
+  const models = tree[String(year)]?.[makeSlug(make)];
+  if (!models) {
+    return [];
   }
-  return Array.from(set).sort().map(titleCase);
+  return Object.keys(models).sort().map(titleCase);
 }
 
 export async function listSubmodels(
@@ -133,16 +165,12 @@ export async function listSubmodels(
   make: string,
   model: string
 ): Promise<string[]> {
-  const fitments = await getAllFitmentsCached();
-  const m = make.toLowerCase().replace(/\s+/g, "-");
-  const mod = model.toLowerCase().replace(/\s+/g, "-");
-  const set = new Set<string>();
-  for (const f of fitments) {
-    if (f.year === year && f.make === m && f.model === mod) {
-      set.add(f.submodel);
-    }
+  const tree = await getYmmTree();
+  const submodels = tree[String(year)]?.[makeSlug(make)]?.[makeSlug(model)];
+  if (!submodels) {
+    return [];
   }
-  return Array.from(set).sort().map(titleCase);
+  return [...submodels].sort().map(titleCase);
 }
 
 export async function getFitmentsForProduct(

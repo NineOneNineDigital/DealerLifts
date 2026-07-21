@@ -235,7 +235,9 @@ export function buildLogoutUrl(opts: { idToken?: string } = {}): string {
 
   const params = new URLSearchParams({
     client_id: clientId,
-    post_logout_redirect_uri: appUrl,
+    // Must exactly match a registered Logout URI in the Shopify Customer
+    // Account API config, which are all `<origin>/shop`.
+    post_logout_redirect_uri: `${appUrl}/shop`,
   });
 
   if (opts.idToken) {

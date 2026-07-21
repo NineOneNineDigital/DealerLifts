@@ -8,8 +8,7 @@ import {
   IconBrandFacebook,
   IconBrandTiktok,
 } from "@tabler/icons-react";
-import { QuoteForm } from "@/components/forms/QuoteForm";
-import { ContactForm } from "@/components/forms/ContactForm";
+import { ContactFormTabs } from "@/components/forms/ContactFormTabs";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -39,28 +38,8 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {/* Forms */}
-            <div className="lg:col-span-2 space-y-10">
-              <div>
-                <h2 className="font-heading text-2xl font-bold mb-1">
-                  Request a Quote
-                </h2>
-                <p className="text-gray-500 text-sm mb-6">
-                  Tell us about your vehicle and the work you&apos;d like done.
-                </p>
-                <QuoteForm />
-              </div>
-
-              <hr className="border-gray-100" />
-
-              <div>
-                <h2 className="font-heading text-2xl font-bold mb-1">
-                  General Inquiry
-                </h2>
-                <p className="text-gray-500 text-sm mb-6">
-                  Have a question? Drop us a message.
-                </p>
-                <ContactForm />
-              </div>
+            <div className="lg:col-span-2">
+              <ContactFormTabs />
             </div>
 
             {/* Sidebar */}
@@ -84,7 +63,11 @@ export default function ContactPage() {
                   </li>
                   <li className="flex items-start gap-3">
                     <IconMapPin size={18} className="text-[#077BFF] mt-0.5 shrink-0" />
-                    <span className="text-gray-700 text-sm">Raleigh, North Carolina</span>
+                    <span className="text-gray-700 text-sm">
+                      73 Crape Myrtle Dr
+                      <br />
+                      Benson, NC 27504
+                    </span>
                   </li>
                 </ul>
               </div>
