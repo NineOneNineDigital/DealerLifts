@@ -57,8 +57,8 @@ export default function ContactPage() {
                   </li>
                   <li className="flex items-start gap-3">
                     <IconMail size={18} className="text-[#077BFF] mt-0.5 shrink-0" />
-                    <a href="mailto:info@dealerlifts.com" className="text-gray-900 hover:text-[#077BFF] transition-colors font-medium text-sm">
-                      info@dealerlifts.com
+                    <a href="mailto:info@dealerliftsinc.com" className="text-gray-900 hover:text-[#077BFF] transition-colors font-medium text-sm">
+                      info@dealerliftsinc.com
                     </a>
                   </li>
                   <li className="flex items-start gap-3">
@@ -99,9 +99,9 @@ export default function ContactPage() {
                 </h3>
                 <div className="flex gap-3">
                   {[
-                    { href: "https://instagram.com/dealerlifts", icon: IconBrandInstagram, label: "Instagram" },
-                    { href: "https://facebook.com/dealerlifts", icon: IconBrandFacebook, label: "Facebook" },
-                    { href: "https://tiktok.com/@dealerlifts", icon: IconBrandTiktok, label: "TikTok" },
+                    { href: "https://instagram.com/dealerliftsinc", icon: IconBrandInstagram, label: "Instagram" },
+                    { href: "https://facebook.com/dealerliftsinc", icon: IconBrandFacebook, label: "Facebook" },
+                    { href: "https://tiktok.com/@dealerliftsinc", icon: IconBrandTiktok, label: "TikTok" },
                   ].map((social) => (
                     <a
                       key={social.label}

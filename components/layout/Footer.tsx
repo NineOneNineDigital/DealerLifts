@@ -23,17 +23,17 @@ const companyLinks = [
 
 const socials = [
   {
-    href: "https://instagram.com/dealerlifts",
+    href: "https://instagram.com/dealerliftsinc",
     icon: IconBrandInstagram,
     label: "Instagram",
   },
   {
-    href: "https://facebook.com/dealerlifts",
+    href: "https://facebook.com/dealerliftsinc",
     icon: IconBrandFacebook,
     label: "Facebook",
   },
   {
-    href: "https://tiktok.com/@dealerlifts",
+    href: "https://tiktok.com/@dealerliftsinc",
     icon: IconBrandTiktok,
     label: "TikTok",
   },
@@ -178,14 +178,14 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:info@dealerlifts.com"
+                  href="mailto:info@dealerliftsinc.com"
                   className="group inline-flex items-center gap-2.5 text-gray-400 transition-colors hover:text-white"
                 >
                   <IconMail
                     size={16}
                     className="shrink-0 text-gray-500 transition-colors group-hover:text-[#077BFF]"
                   />
-                  info@dealerlifts.com
+                  info@dealerliftsinc.com
                 </a>
               </li>
             </ul>
