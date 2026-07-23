@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Oxanium, Barlow, Barlow_Condensed } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/lib/store/cart-context";
@@ -48,6 +48,27 @@ export const metadata: Metadata = {
     locale: "en_US",
     siteName: "Dealer Lifts",
   },
+  manifest: "/site.webmanifest",
+  icons: {
+    icon: [
+      {
+        url: "/icon.svg",
+        type: "image/svg+xml",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: "/icon-dark.svg",
+        type: "image/svg+xml",
+        media: "(prefers-color-scheme: dark)",
+      },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#077BFF",
 };
 
 export default function RootLayout({
