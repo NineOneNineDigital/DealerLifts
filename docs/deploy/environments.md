@@ -13,7 +13,7 @@ per-environment env-var scoping.
 | Git branch | Vercel environment |
 |---|---|
 | `main` | Production |
-| `dev` | Staging (Preview, bound to `staging.dealerlifts.com`) |
+| `dev` | Staging (Preview, bound to `staging.dealerliftsinc.com`) |
 | any other branch / PR | ephemeral Preview |
 
 Related docs: [plan](../superpowers/plans/2026-07-12-staging-production-environments.md),
@@ -28,7 +28,7 @@ Related docs: [plan](../superpowers/plans/2026-07-12-staging-production-environm
 | Host | localhost + ngrok | Vercel (Preview, `dev` branch) | Vercel (Production, `main` branch) |
 | Git branch | any | `dev` | `main` |
 | Shopify store | dev store | free dev store (seeded product subset) | live store |
-| `NEXT_PUBLIC_SITE_URL` | ngrok URL | `https://staging.dealerlifts.com` | `https://dealerlifts.com` |
+| `NEXT_PUBLIC_SITE_URL` | ngrok URL | `https://staging.dealerliftsinc.com` | `https://dealerliftsinc.com` |
 | Payments | Bogus Gateway | Bogus Gateway | Real gateway |
 | Turn14 app (Turn 14 Distribution / Data Here-to-There) | not connected | not connected (seeded data only) | connected (live sync) |
 | Hygraph / Tawk | shared | shared | shared |
@@ -60,7 +60,7 @@ instead of silently serving broken pages.
 
 ### Production scope (live store)
 
-- `NEXT_PUBLIC_SITE_URL` **[validated]** — `https://dealerlifts.com`
+- `NEXT_PUBLIC_SITE_URL` **[validated]** — `https://dealerliftsinc.com`
 - `SHOPIFY_STORE_DOMAIN` **[validated]** — live store
 - `SHOPIFY_STOREFRONT_API_TOKEN` **[validated]** — live store
 - `SHOPIFY_CUSTOMER_ACCOUNT_API_CLIENT_ID` **[validated]** — live store
@@ -69,7 +69,7 @@ instead of silently serving broken pages.
 
 ### Preview scope (staging — dev store)
 
-- `NEXT_PUBLIC_SITE_URL` **[validated]** — `https://staging.dealerlifts.com`
+- `NEXT_PUBLIC_SITE_URL` **[validated]** — `https://staging.dealerliftsinc.com`
 - `SHOPIFY_STORE_DOMAIN` **[validated]** — dev store, name: `<!-- fill in after Task 2 Step 3 -->`
 - `SHOPIFY_STOREFRONT_API_TOKEN` **[validated]** — dev store token, name: `<!-- fill in after Task 2 Step 3: token name/label in Shopify Admin -->`
 - `SHOPIFY_CUSTOMER_ACCOUNT_API_CLIENT_ID` **[validated]** — dev store, `<!-- fill in after Task 2 Step 4 -->`
@@ -97,8 +97,8 @@ accounts → Headless):
 
 | Environment | Callback URI | Logout redirect |
 |---|---|---|
-| Staging | `https://staging.dealerlifts.com/api/auth/shopify/callback` | `https://staging.dealerlifts.com` |
-| Production | `https://dealerlifts.com/api/auth/shopify/callback` | `https://dealerlifts.com` |
+| Staging | `https://staging.dealerliftsinc.com/api/auth/shopify/callback` | `https://staging.dealerliftsinc.com` |
+| Production | `https://dealerliftsinc.com/api/auth/shopify/callback` | `https://dealerliftsinc.com` |
 
 Register the staging pair on the **dev store's** Headless config (Task 2 Step 4);
 register the production pair on the **live store's** Headless config (Task 6
@@ -108,10 +108,10 @@ go-live checklist below).
 
 ## Domains / DNS
 
-- **Production:** `dealerlifts.com` + `www.dealerlifts.com` → Vercel Production.
+- **Production:** `dealerliftsinc.com` + `www.dealerliftsinc.com` → Vercel Production.
   Add both in Vercel **Settings → Domains**; follow Vercel's DNS instructions at
   the registrar; confirm both assign to the Production environment.
-- **Staging:** `staging.dealerlifts.com` → set to deploy from the **`dev`
+- **Staging:** `staging.dealerliftsinc.com` → set to deploy from the **`dev`
   branch** specifically (Domains → Edit → Git Branch = `dev`), so it always
   tracks staging rather than the most recent arbitrary preview.
 - SSL is issued/managed automatically by Vercel once DNS resolves correctly.
@@ -121,7 +121,7 @@ go-live checklist below).
 Staging is not indexed and is not publicly browsable. Protection is managed in
 **Vercel → Project → Settings → Deployment Protection** — enable
 Password/Vercel Authentication for Preview deployments (or HTTP Basic Auth) and
-confirm `https://staging.dealerlifts.com` prompts for a password in a private
+confirm `https://staging.dealerliftsinc.com` prompts for a password in a private
 browser window.
 
 The staging password itself is **not** stored in this repo. Location for the
@@ -133,9 +133,9 @@ password manager entry)`.
 ## Production go-live checklist
 - [ ] Live store: real payment gateway enabled, Bogus Gateway disabled.
 - [ ] Live store: Turn 14 Distribution (Data Here-to-There) app connected and syncing.
-- [ ] Production env vars in Vercel point at the live store; NEXT_PUBLIC_SITE_URL=https://dealerlifts.com.
-- [ ] Customer Account API on the live store registers https://dealerlifts.com/api/auth/shopify/callback + https://dealerlifts.com (logout) URIs.
-- [ ] DNS for dealerlifts.com + www points at Vercel; SSL issued and verified.
+- [ ] Production env vars in Vercel point at the live store; NEXT_PUBLIC_SITE_URL=https://dealerliftsinc.com.
+- [ ] Customer Account API on the live store registers https://dealerliftsinc.com/api/auth/shopify/callback + https://dealerliftsinc.com (logout) URIs.
+- [ ] DNS for dealerliftsinc.com + www points at Vercel; SSL issued and verified.
 - [ ] robots/indexing enabled on production; staging remains password-protected.
 - [ ] One controlled real order placed and verified end-to-end (validates the live
       Turn14 order-submission path that staging intentionally cannot exercise), then refunded/cancelled as appropriate.

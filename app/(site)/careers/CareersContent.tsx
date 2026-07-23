@@ -17,7 +17,7 @@ import { ScrollReveal } from "@/components/animations/ScrollReveal";
 import { buttonVariants } from "@/components/ui/button";
 import type { JobPosition } from "@/lib/hygraph";
 
-const APPLY_EMAIL = "info@dealerlifts.com";
+const APPLY_EMAIL = "info@dealerliftsinc.com";
 
 const perks = [
   { icon: IconTool, label: "Top-tier brands & parts" },
@@ -37,6 +37,17 @@ function buildMailto(jobTitle: string) {
     `Hi Dealer Lifts team,\n\nI'd like to apply for the ${jobTitle} position. My resume is attached.\n\nThanks,\n`
   );
   return `mailto:${APPLY_EMAIL}?subject=${subject}&body=${body}`;
+}
+
+/** Collapse a rich-text plain-text description into a clean single-line teaser
+ * for the clamped card preview. Handles both real newlines and literal escape
+ * sequences (e.g. a `\n` baked into the CMS text), which otherwise render
+ * verbatim in the card. */
+function descriptionPreview(text: string) {
+  return text
+    .replace(/\\[nrt]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function JobMeta({ position }: { position: JobPosition }) {
@@ -108,31 +119,36 @@ function PositionsList({
 
   return (
     <div className="space-y-4">
-      {positions.map((position) => (
-        <ScrollReveal key={position.id}>
-          <button
-            className="group w-full rounded-lg border border-gray-100 p-6 text-left transition-all hover:border-gray-300 hover:shadow-sm"
-            onClick={() => onOpen(position.id)}
-            type="button"
-          >
-            <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
-              <h3 className="flex items-center gap-2 font-bold font-heading text-lg transition-colors group-hover:text-[#077BFF]">
-                <IconBriefcase className="text-[#077BFF]" size={18} />
-                {position.name}
-              </h3>
-              <span className="font-semibold text-[#077BFF] text-xs">
-                View details →
-              </span>
-            </div>
-            <JobMeta position={position} />
-            {position.jobDescription?.text ? (
-              <p className="mt-3 line-clamp-2 text-gray-500 text-sm">
-                {position.jobDescription.text}
-              </p>
-            ) : null}
-          </button>
-        </ScrollReveal>
-      ))}
+      {positions.map((position) => {
+        const preview = position.jobDescription?.text
+          ? descriptionPreview(position.jobDescription.text)
+          : "";
+        return (
+          <ScrollReveal key={position.id}>
+            <button
+              className="group w-full rounded-lg border border-gray-100 p-6 text-left transition-all hover:border-gray-300 hover:shadow-sm"
+              onClick={() => onOpen(position.id)}
+              type="button"
+            >
+              <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                <h3 className="flex items-center gap-2 font-bold font-heading text-lg transition-colors group-hover:text-[#077BFF]">
+                  <IconBriefcase className="text-[#077BFF]" size={18} />
+                  {position.name}
+                </h3>
+                <span className="font-semibold text-[#077BFF] text-xs">
+                  View details →
+                </span>
+              </div>
+              <JobMeta position={position} />
+              {preview ? (
+                <p className="mt-3 line-clamp-2 text-gray-500 text-sm">
+                  {preview}
+                </p>
+              ) : null}
+            </button>
+          </ScrollReveal>
+        );
+      })}
     </div>
   );
 }
