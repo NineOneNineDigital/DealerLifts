@@ -254,8 +254,28 @@ const PAGES = {
       applyEmail: d.applyEmail,
     }),
   },
-  // gallery / contact entries are added by the tasks that create each page's
-  // defaults module.
+  gallery: {
+    model: "GalleryPage",
+    plural: "galleryPages",
+    load: () => import("../app/(site)/gallery/defaults.ts"),
+    key: "GALLERY_DEFAULTS",
+    build: (d) => ({
+      seoTitle: d.seoTitle,
+      seoDescription: d.seoDescription,
+      hero: { create: { ...d.hero } },
+    }),
+  },
+  contact: {
+    model: "ContactPage",
+    plural: "contactPages",
+    load: () => import("../app/(site)/contact/defaults.ts"),
+    key: "CONTACT_DEFAULTS",
+    build: (d) => ({
+      seoTitle: d.seoTitle,
+      seoDescription: d.seoDescription,
+      hero: { create: { ...d.hero } },
+    }),
+  },
 };
 
 const run = async () => {

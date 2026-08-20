@@ -9,27 +9,43 @@ import {
   IconBrandTiktok,
 } from "@tabler/icons-react";
 import { ContactFormTabs } from "@/components/forms/ContactFormTabs";
+import { getContactContent } from "./content";
 
-export const metadata: Metadata = {
-  title: "Contact",
-  description:
-    "Get a free quote for your next build or schedule service at Dealer Lifts. Call (919) 275-8095 or fill out our online form.",
-};
+export const revalidate = 60;
 
-export default function ContactPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getContactContent();
+
+  return {
+    title: content.seoTitle,
+    description: content.seoDescription,
+  };
+}
+
+export default async function ContactPage() {
+  const content = await getContactContent();
+  const { hero } = content;
+
   return (
     <>
       <section className="pt-32 pb-16 md:pt-40 md:pb-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-[#077BFF] text-sm font-semibold tracking-wide uppercase mb-3">
-            Get In Touch
+            {hero.eyebrow}
           </p>
           <h1 className="font-heading text-4xl md:text-5xl font-bold">
-            Let&apos;s talk about your build.
+            {hero.headline}
+            {hero.headlineAccent && (
+              <>
+                {" "}
+                <span className="bg-gradient-to-r from-[#3D9BFF] via-[#077BFF] to-[#0565D4] bg-clip-text text-transparent">
+                  {hero.headlineAccent}
+                </span>
+              </>
+            )}
           </h1>
           <p className="mt-4 text-gray-500 text-lg max-w-2xl mx-auto">
-            Request a quote, ask a question, or schedule a consultation.
-            We typically respond within 24 hours.
+            {hero.subhead}
           </p>
         </div>
       </section>
