@@ -153,7 +153,30 @@ const PAGES = {
       processSteps: { create: d.processSteps.map(wrap) },
     }),
   },
-  // home / about / careers / gallery / contact entries are added by the
+  home: {
+    model: "HomePage",
+    plural: "homePages",
+    load: () => import("../app/(site)/home-defaults.ts"),
+    key: "HOME_DEFAULTS",
+    build: (d, wrap) => ({
+      seoTitle: d.seoTitle,
+      seoDescription: d.seoDescription,
+      hero: { create: { ...d.hero } },
+      stats: { create: d.stats.map((s) => ({ ...s })) },
+      servicesEyebrow: d.servicesEyebrow,
+      servicesHeading: d.servicesHeading,
+      servicesSubhead: d.servicesSubhead,
+      servicesLinkLabel: d.servicesLinkLabel,
+      servicesLinkHref: d.servicesLinkHref,
+      servicesPreview: { create: d.servicesPreview.map(wrap) },
+      testimonialsEyebrow: d.testimonialsEyebrow,
+      testimonialsHeading: d.testimonialsHeading,
+      testimonialsRatingLabel: d.testimonialsRatingLabel,
+      testimonials: { create: d.testimonials.map((t) => ({ ...t })) },
+      ctaBanner: { create: { ...d.ctaBanner } },
+    }),
+  },
+  // about / careers / gallery / contact entries are added by the
   // tasks that create each page's defaults module.
 };
 
