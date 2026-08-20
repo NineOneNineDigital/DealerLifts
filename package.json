@@ -12,6 +12,8 @@
     "lint": "biome check .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "hygraph:migrate": "node scripts/hygraph-migrate.mjs",
+    "hygraph:seed": "node --experimental-strip-types scripts/hygraph-seed.mjs",
     "format": "biome check --write ."
   },
   "dependencies": {
@@ -33,6 +35,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.5",
+    "@hygraph/management-sdk": "^1.6.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

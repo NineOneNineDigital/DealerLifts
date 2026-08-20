@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  mergeServicesContent,
-  SERVICES_DEFAULTS,
-} from "@/app/(site)/services/content";
+import { mergeServicesContent } from "@/app/(site)/services/content";
+import { SERVICES_DEFAULTS } from "@/app/(site)/services/defaults";
 
 describe("mergeServicesContent", () => {
   it("returns the full defaults when the entry is unpublished or the fetch failed", () => {
