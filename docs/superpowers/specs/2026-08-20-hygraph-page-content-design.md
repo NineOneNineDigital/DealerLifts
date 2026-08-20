@@ -71,9 +71,9 @@ One published entry each. No slug field — the owner edits existing pages and c
 | Model | Fields |
 |---|---|
 | `HomePage` | `seoTitle`, `seoDescription`, `hero` (CtaBlock), `stats[]`, `servicesEyebrow`, `servicesHeading`, `servicesSubhead`, `servicesLinkLabel`, `servicesLinkHref`, `servicesPreview[]`, `testimonialsEyebrow`, `testimonialsHeading`, `testimonialsRatingLabel`, `testimonials[]`, `ctaBanner` (CtaBlock) |
-| `AboutPage` | `seoTitle`, `seoDescription`, `hero`, `storyHeading`, `storyBody` (RichText), `strengths[]` |
+| `AboutPage` | `seoTitle`, `seoDescription`, `hero`, `storyHeading`, `storyBody` (RichText), `strengths[]`, `teamEyebrow`, `teamHeading`, `teamSubhead` |
 | `ServicesPage` | `seoTitle`, `seoDescription`, `hero`, `services[]`, `processEyebrow`, `processHeading`, `processCtaLabel`, `processCtaHref`, `processSteps[]` |
-| `CareersPage` | `seoTitle`, `seoDescription`, `hero`, `perks[]`, `applyEmail` |
+| `CareersPage` | `seoTitle`, `seoDescription`, `hero`, `perks[]`, `positionsHeading`, `applyEmail` |
 | `GalleryPage` | `seoTitle`, `seoDescription`, `hero` |
 | `ContactPage` | `seoTitle`, `seoDescription`, `hero` |
 
