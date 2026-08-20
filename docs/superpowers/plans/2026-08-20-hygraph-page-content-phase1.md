@@ -801,7 +801,7 @@ Run this against your endpoint, substituting `$HYGRAPH_CONTENT_API_URL` from `.e
 ```bash
 curl -s "$HYGRAPH_CONTENT_API_URL" \
   -H 'Content-Type: application/json' \
-  -d '{"query":"{ servicesPages(first: 1) { seoTitle hero { eyebrow headline headlineAccent subhead } services { icon title description tags href } processEyebrow processHeading processCtaLabel processCtaHref processSteps { icon title description tags href } } }"}' \
+  -d '{"query":"{ servicesPages(first: 1) { seoTitle seoDescription hero { eyebrow headline headlineAccent subhead } services { icon title description tags href } processEyebrow processHeading processCtaLabel processCtaHref processSteps { icon title description tags href } } }"}' \
   | head -c 2000
 ```
 
