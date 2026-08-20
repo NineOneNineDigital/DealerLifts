@@ -130,6 +130,9 @@ function cardInput(card) {
   };
 }
 
+const PARAGRAPH_RE = /<p>([\s\S]*?)<\/p>/g;
+const INLINE_MARKUP_RE = /[<&]/;
+
 /**
  * Hygraph's RichTextAST scalar does NOT accept a bare HTML string on create —
  * confirmed by introspecting AboutPageCreateInput, which reports
@@ -139,11 +142,33 @@ function cardInput(card) {
  *
  * ABOUT_DEFAULTS.storyBody is plain `<p>...</p>` markup with no nested
  * formatting (no bold/links/lists), so this is a minimal one-paragraph-per-
- * <p> converter, not a general HTML-to-Slate converter. It would need
- * extending before reuse on richer content.
+ * <p> converter, not a general HTML-to-Slate converter. It fails LOUDLY
+ * (throws) rather than silently corrupting content on anything outside that
+ * scope — empty input (zero <p> blocks), missing/unclosed/attributed <p>
+ * tags, stray text between blocks, lists, or inline markup/entities inside a
+ * paragraph — so a bad input can never seed as empty or truncated rich text,
+ * or leak literal "<strong>"/"&amp;" into a live paragraph. Extend it (and
+ * its guards) before reusing it on richer content.
  */
 function htmlParagraphsToRichTextAst(html) {
-  const paragraphs = [...html.matchAll(/<p>([\s\S]*?)<\/p>/g)].map((m) => m[1]);
+  const paragraphs = [...html.matchAll(PARAGRAPH_RE)].map((m) => m[1]);
+
+  if (paragraphs.length === 0) {
+    throw new Error(
+      `htmlParagraphsToRichTextAst: no <p> blocks found: ${html}`
+    );
+  }
+  if (paragraphs.map((text) => `<p>${text}</p>`).join("") !== html) {
+    throw new Error(
+      `htmlParagraphsToRichTextAst: unsupported markup (only bare <p> blocks): ${html}`
+    );
+  }
+  if (paragraphs.some((text) => INLINE_MARKUP_RE.test(text))) {
+    throw new Error(
+      "htmlParagraphsToRichTextAst: inline tags/entities are not converted"
+    );
+  }
+
   return {
     children: paragraphs.map((text) => ({
       type: "paragraph",
