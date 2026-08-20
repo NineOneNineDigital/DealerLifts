@@ -203,7 +203,7 @@ The existing throwing `hygraphFetch` is retained for the three collection querie
 ### Changes to existing behavior
 
 - `services/page.tsx` and `contact/page.tsx` are currently synchronous with static `metadata` exports. Both become `async` with `generateMetadata`, and gain `export const revalidate = 60` to match the other four pages.
-- `about/page.tsx:15` and `careers/page.tsx:16` already hand-roll try/catch around their collection fetches. Those blocks collapse into `hygraphFetchSafe`, removing duplicated error handling.
+- `about/page.tsx:15` and `careers/page.tsx:16` already hand-roll try/catch around their collection fetches. Those blocks are retained deliberately rather than collapsed into `hygraphFetchSafe`: Careers' `loadError` drives user-visible copy that `hygraphFetchSafe`'s silent-`null` degradation would erase, and the collection accessors elsewhere in this section correctly keep the throwing `hygraphFetch` for the same reason — a hard failure there is preferable to an empty list.
 - Section components stop owning their data. `ServicesGrid`, `ProcessSection`, `Testimonials`, `StatsBar`, `ServicesPreview`, `Hero`, and `CTABanner` take content as props instead of reading module-level arrays.
 
 ## Testing
@@ -241,3 +241,5 @@ Each page is an independent, shippable commit. Stopping after any page leaves th
 - `SiteSettings` singleton for phone, email, address, hours, and social links — resolves the phone-number duplication across four files and the noted `CtaBlock` inconsistency.
 - Hygraph webhook → `app/api/revalidate/route.ts` for instant publishing, if 60-second ISR proves too slow.
 - Brand logo wall moved to Hygraph assets.
+- Open Graph metadata is not CMS-driven. `app/layout.tsx:43-47` hardcodes `openGraph.title`/`description`, and Next replaces rather than deep-merges `openGraph`, so a naive per-page override would drop the layout's OG images. Today, an owner who edits a page's SEO title in Hygraph sees `<title>` change, but the Facebook/Slack/iMessage preview still shows the site-wide copy. Fixing it needs a per-page image decision, which is why it is deferred rather than done.
+- Nothing prevents a second page entry. The queries use `first: 1` with no `orderBy` and take `[0]`; the seed script refuses duplicates and the model descriptions say "create exactly ONE entry", but an editor duplicating an entry in Studio makes which content wins undefined. The mitigation is a permissions change — deny Create on the six page models for the editor role.
