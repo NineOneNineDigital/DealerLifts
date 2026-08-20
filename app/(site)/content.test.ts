@@ -30,9 +30,15 @@ describe("mergeHomeContent", () => {
     expect(result.hero.buttonLabel).toBe(HOME_DEFAULTS.hero.buttonLabel);
   });
 
-  it("lets an editor clear the optional hero eyebrow", () => {
+  it("lets an editor clear the optional hero eyebrow while headline still falls back", () => {
     const result = mergeHomeContent({ hero: { eyebrow: "" } });
     expect(result.hero.eyebrow).toBe("");
+    expect(result.hero.headline).toBe(HOME_DEFAULTS.hero.headline);
+  });
+
+  it("lets an editor clear the optional CTA banner accent", () => {
+    const r = mergeHomeContent({ ctaBanner: { headlineAccent: "" } });
+    expect(r.ctaBanner.headlineAccent).toBe("");
   });
 
   it("replaces the whole stats list rather than interleaving", () => {
@@ -77,6 +83,12 @@ describe("HOME_DEFAULTS", () => {
 
   it("preserves the non-breaking space in the hero subhead", () => {
     expect(HOME_DEFAULTS.hero.subhead).toContain("30 years");
+  });
+
+  it("preserves the non-breaking space in the testimonials heading", () => {
+    expect(HOME_DEFAULTS.testimonialsHeading).toBe(
+      "Don't take our word for\u00a0it."
+    );
   });
 
   it("preserves the non-breaking spaces in the CTA banner accent", () => {
