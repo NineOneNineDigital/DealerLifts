@@ -46,7 +46,7 @@ Let the site owner edit the copy on the six marketing pages — hero text, secti
 | Component | Fields | Used by |
 |---|---|---|
 | `PageHero` | `eyebrow`, `headline`, `headlineAccent?`, `subhead` | about, services, contact, careers, gallery |
-| `IconCard` | `icon` (enum), `title`, `description` | services grid (8), process steps (4), services preview (3) |
+| `IconCard` | `icon` (enum), `title`, `description`, `tags[]` (String list), `href?` | services grid (8), process steps (4), services preview (3) |
 | `IconLabel` | `icon` (enum), `label` | about strengths (6), careers perks (4) |
 | `Stat` | `value` (Int), `suffix`, `label` | home stats bar (4) |
 | `Testimonial` | `name`, `vehicle`, `quote` | home testimonials (3) |
@@ -54,7 +54,13 @@ Let the site owner edit the copy on the six marketing pages — hero text, secti
 
 `CtaBlock.eyebrow` is optional because the home hero has none — it opens directly on the `h1` — while the CTA banner renders "Ready to start?" above its heading. The renderer omits the element entirely when the field is blank.
 
+`IconCard.tags[]` is one field serving two renderers: `ServicesGrid` calls them "brands" (`Carli`, `BDS`, `Fox`) and `ServicesPreview` calls them "tags" (`Oil Change`, `Tires`). Both render the same chip row and both already guard on a non-empty list, so process steps leave it empty. `href` is likewise optional — only `ServicesPreview` cards link.
+
 `Stat.value` maps to the existing `AnimatedCounter` `target` prop; the field is named `value` in Hygraph because "target" is meaningless to an editor.
+
+### Section headers
+
+Every repeating section has its own header block above the items — an eyebrow, a heading, sometimes a subhead, sometimes a CTA link. These are modeled as **sibling scalar fields on the page model**, prefixed by section, rather than as another reusable component: the combinations differ per section (Process has eyebrow + heading + button and no subhead; Services Preview has eyebrow + heading + subhead + text link; Testimonials has eyebrow + heading + a rating label), and a component with six optional fields would be worse for the editor than named fields.
 
 `icon` is one shared enum, `IconName`, covering every Tabler icon currently in use: `MessageCircle`, `FileDescription`, `Hammer`, `CircleCheck`, `Clock24`, `Star`, `Certificate`, `ShieldCheck`, `Tool`, `Users`, `Briefcase`, `Heart`, `Trophy`.
 
@@ -64,9 +70,9 @@ One published entry each. No slug field — the owner edits existing pages and c
 
 | Model | Fields |
 |---|---|
-| `HomePage` | `seoTitle`, `seoDescription`, `hero` (CtaBlock), `stats[]`, `servicesPreview[]`, `testimonials[]`, `ctaBanner` (CtaBlock) |
+| `HomePage` | `seoTitle`, `seoDescription`, `hero` (CtaBlock), `stats[]`, `servicesEyebrow`, `servicesHeading`, `servicesSubhead`, `servicesLinkLabel`, `servicesLinkHref`, `servicesPreview[]`, `testimonialsEyebrow`, `testimonialsHeading`, `testimonialsRatingLabel`, `testimonials[]`, `ctaBanner` (CtaBlock) |
 | `AboutPage` | `seoTitle`, `seoDescription`, `hero`, `storyHeading`, `storyBody` (RichText), `strengths[]` |
-| `ServicesPage` | `seoTitle`, `seoDescription`, `hero`, `services[]`, `processHeading`, `processSubhead`, `processSteps[]` |
+| `ServicesPage` | `seoTitle`, `seoDescription`, `hero`, `services[]`, `processEyebrow`, `processHeading`, `processCtaLabel`, `processCtaHref`, `processSteps[]` |
 | `CareersPage` | `seoTitle`, `seoDescription`, `hero`, `perks[]`, `applyEmail` |
 | `GalleryPage` | `seoTitle`, `seoDescription`, `hero` |
 | `ContactPage` | `seoTitle`, `seoDescription`, `hero` |
