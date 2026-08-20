@@ -34,5 +34,5 @@ export function list<T>(
   value: readonly T[] | null | undefined,
   fallback: T[]
 ): T[] {
-  return value && value.length > 0 ? [...value] : fallback;
+  return value && value.length > 0 ? [...value] : [...fallback];
 }

@@ -76,4 +76,11 @@ describe("list", () => {
     result.push("b");
     expect(cms).toEqual(["a"]);
   });
+
+  it("returns a copy of the fallback so callers cannot mutate the default", () => {
+    const fallback = ["default"];
+    const result = list(null, fallback);
+    result.push("mutated");
+    expect(fallback).toEqual(["default"]);
+  });
 });
