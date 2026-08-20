@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { selectEntry } from "@/lib/content/entry";
 import { list, optStr, str } from "@/lib/content/merge";
 import { toIconLabel } from "@/lib/content/normalize";
 import type { RawIconLabel, RawPageHero } from "@/lib/content/types";
@@ -85,14 +86,7 @@ export const getAboutContent = cache(async (): Promise<AboutContentData> => {
     aboutPages: RawAboutPage[] | null;
   }>(QUERY);
 
-  const entry = data?.aboutPages?.[0] ?? null;
-  if (data && !entry) {
-    const msg = "[hygraph] aboutPages returned no entry — rendering defaults";
-    if (process.env.HYGRAPH_STRICT === "1") {
-      throw new Error(msg);
-    }
-    console.warn(msg);
-  }
+  const entry = selectEntry(data, "aboutPages");
 
   return mergeAboutContent(entry);
 });

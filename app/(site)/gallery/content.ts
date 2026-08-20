@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { selectEntry } from "@/lib/content/entry";
 import { optStr, str } from "@/lib/content/merge";
 import type { RawPageHero } from "@/lib/content/types";
 import { hygraphFetchSafe } from "@/lib/hygraph";
@@ -65,15 +66,7 @@ export const getGalleryContent = cache(
       galleryPages: RawGalleryPage[] | null;
     }>(QUERY);
 
-    const entry = data?.galleryPages?.[0] ?? null;
-    if (data && !entry) {
-      const msg =
-        "[hygraph] galleryPages returned no entry — rendering defaults";
-      if (process.env.HYGRAPH_STRICT === "1") {
-        throw new Error(msg);
-      }
-      console.warn(msg);
-    }
+    const entry = selectEntry(data, "galleryPages");
 
     return mergeGalleryContent(entry);
   }

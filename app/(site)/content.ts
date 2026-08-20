@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { selectEntry } from "@/lib/content/entry";
 import { list, optStr, str } from "@/lib/content/merge";
 import {
   toCtaBlock,
@@ -160,14 +161,7 @@ export const getHomeContent = cache(async (): Promise<HomeContent> => {
     homePages: RawHomePage[] | null;
   }>(QUERY);
 
-  const entry = data?.homePages?.[0] ?? null;
-  if (data && !entry) {
-    const msg = "[hygraph] homePages returned no entry — rendering defaults";
-    if (process.env.HYGRAPH_STRICT === "1") {
-      throw new Error(msg);
-    }
-    console.warn(msg);
-  }
+  const entry = selectEntry(data, "homePages");
 
   return mergeHomeContent(entry);
 });

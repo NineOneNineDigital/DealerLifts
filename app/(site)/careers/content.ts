@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { selectEntry } from "@/lib/content/entry";
 import { list, optStr, str } from "@/lib/content/merge";
 import { toIconLabel } from "@/lib/content/normalize";
 import type { RawIconLabel, RawPageHero } from "@/lib/content/types";
@@ -78,15 +79,7 @@ export const getCareersContent = cache(
       careersPages: RawCareersPage[] | null;
     }>(QUERY);
 
-    const entry = data?.careersPages?.[0] ?? null;
-    if (data && !entry) {
-      const msg =
-        "[hygraph] careersPages returned no entry — rendering defaults";
-      if (process.env.HYGRAPH_STRICT === "1") {
-        throw new Error(msg);
-      }
-      console.warn(msg);
-    }
+    const entry = selectEntry(data, "careersPages");
 
     return mergeCareersContent(entry);
   }
