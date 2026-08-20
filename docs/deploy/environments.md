@@ -76,6 +76,13 @@ instead of silently serving broken pages.
 - `SHOPIFY_CUSTOMER_ACCOUNT_API_URL` **[validated]** — dev store, `<!-- fill in after Task 2 Step 4 -->`
 - `SHOPIFY_CUSTOMER_ACCOUNT_AUTH_URL` **[validated]** — dev store, `<!-- fill in after Task 2 Step 4 -->`
 
+### Production + Preview build scope only (not Shared — must stay unset in Development)
+
+- `HYGRAPH_STRICT=1` — fails the build on a page-content CMS error instead of
+  shipping code defaults. **Do not enable until the Hygraph `ServicesPage`
+  model exists and is published** — until then the endpoint returns 400 for
+  page content and a strict build will fail.
+
 ### Shared (Production + Preview + Development)
 
 - `HYGRAPH_CONTENT_API_URL` **[validated]**

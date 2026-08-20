@@ -62,7 +62,7 @@ Let the site owner edit the copy on the six marketing pages — hero text, secti
 
 Every repeating section has its own header block above the items — an eyebrow, a heading, sometimes a subhead, sometimes a CTA link. These are modeled as **sibling scalar fields on the page model**, prefixed by section, rather than as another reusable component: the combinations differ per section (Process has eyebrow + heading + button and no subhead; Services Preview has eyebrow + heading + subhead + text link; Testimonials has eyebrow + heading + a rating label), and a component with six optional fields would be worse for the editor than named fields.
 
-`icon` is one shared enum, `IconName`, covering every Tabler icon currently in use: `MessageCircle`, `FileDescription`, `Hammer`, `CircleCheck`, `Clock24`, `Star`, `Certificate`, `ShieldCheck`, `Tool`, `Users`, `Briefcase`, `Heart`, `Trophy`.
+`icon` is one shared enum, `IconName`, covering every Tabler icon currently in use: `ArrowUp`, `Bulb`, `CalendarCheck`, `Car4wd`, `Certificate`, `CircleCheck`, `Clock24`, `Disc`, `Droplet`, `Engine`, `FileDescription`, `Hammer`, `Heart`, `MessageCircle`, `ShieldCheck`, `Star`, `Tool`, `Trophy`, `Users`, `Wheel`.
 
 ### Page models
 
