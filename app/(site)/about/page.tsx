@@ -15,14 +15,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AboutPage() {
-  const content = await getAboutContent();
-
-  let team: Awaited<ReturnType<typeof getTeamMembers>> = [];
-  try {
-    team = await getTeamMembers();
-  } catch {
-    team = [];
-  }
+  const [content, team] = await Promise.all([
+    getAboutContent(),
+    getTeamMembers().catch(() => []),
+  ]);
 
   return <AboutContent content={content} team={team} />;
 }

@@ -22,7 +22,11 @@ export function CTABanner({ content }: Props) {
           </p>
           <h2 className="font-bold font-heading text-3xl text-white leading-tight md:text-4xl lg:text-5xl">
             {content.headline}
-            <br className="hidden sm:block" /> {content.headlineAccent}
+            {content.headlineAccent && (
+              <>
+                <br className="hidden sm:block" /> {content.headlineAccent}
+              </>
+            )}
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-gray-400 text-lg leading-relaxed">
             {content.subhead}

@@ -53,7 +53,11 @@ export function ServicesPreview({
             {items.map((service, i) => {
               const Icon = resolveIcon(service.icon);
               return (
-                <ScrollReveal delay={i * 0.12} key={service.title}>
+                <ScrollReveal
+                  delay={i * 0.12}
+                  // biome-ignore lint/suspicious/noArrayIndexKey: title alone can collide when CMS services are mid-edit; index disambiguates
+                  key={`${i}-${service.title}`}
+                >
                   <Link href={service.href}>
                     <motion.div
                       className="group relative flex flex-col gap-5 rounded-xl border border-gray-200 bg-white p-6 transition-all duration-300 hover:border-[#077BFF]/40 hover:shadow-[#077BFF]/5 hover:shadow-lg sm:flex-row md:p-8"

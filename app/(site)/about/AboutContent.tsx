@@ -29,6 +29,14 @@ export function AboutContent({ content, team }: Props) {
           </p>
           <h1 className="font-bold font-heading text-4xl md:text-5xl">
             {content.hero.headline}
+            {content.hero.headlineAccent && (
+              <>
+                {" "}
+                <span className="bg-gradient-to-r from-[#3D9BFF] via-[#077BFF] to-[#0565D4] bg-clip-text text-transparent">
+                  {content.hero.headlineAccent}
+                </span>
+              </>
+            )}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-gray-500 text-lg">
             {content.hero.subhead}
@@ -82,12 +90,13 @@ export function AboutContent({ content, team }: Props) {
       <section className="border-gray-100 border-y bg-gray-50 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
-            {content.strengths.map((item) => {
+            {content.strengths.map((item, i) => {
               const Icon = resolveIcon(item.icon);
               return (
                 <div
                   className="flex flex-col items-center gap-2 text-center"
-                  key={item.label}
+                  // biome-ignore lint/suspicious/noArrayIndexKey: label alone can collide when CMS strengths are mid-edit; index disambiguates
+                  key={`${i}-${item.label}`}
                 >
                   <Icon className="text-[#077BFF]" size={22} />
                   <span className="font-medium text-gray-700 text-sm">

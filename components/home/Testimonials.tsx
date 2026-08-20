@@ -43,7 +43,11 @@ export function Testimonials({ eyebrow, heading, items, ratingLabel }: Props) {
           {/* Right — cards, stacked with slight offset feel */}
           <div className="space-y-5 lg:col-span-8">
             {items.map((t, i) => (
-              <ScrollReveal delay={i * 0.1} key={t.name}>
+              <ScrollReveal
+                delay={i * 0.1}
+                // biome-ignore lint/suspicious/noArrayIndexKey: name alone can collide when CMS testimonials are mid-edit; index disambiguates
+                key={`${i}-${t.name}`}
+              >
                 <div className="relative rounded-xl border border-gray-200 bg-white p-6 transition-colors hover:border-gray-300 md:p-8">
                   <IconQuote
                     className="absolute top-5 right-5 text-gray-100"

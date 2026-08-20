@@ -159,6 +159,14 @@ export function CareersContent({ content, positions, loadError }: Props) {
           </p>
           <h1 className="font-bold font-heading text-4xl md:text-5xl">
             {content.hero.headline}
+            {content.hero.headlineAccent && (
+              <>
+                {" "}
+                <span className="bg-gradient-to-r from-[#3D9BFF] via-[#077BFF] to-[#0565D4] bg-clip-text text-transparent">
+                  {content.hero.headlineAccent}
+                </span>
+              </>
+            )}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-gray-500 text-lg">
             {content.hero.subhead}
