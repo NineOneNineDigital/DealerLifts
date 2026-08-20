@@ -1,36 +1,21 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
-import {
-  IconCertificate,
-  IconClock24,
-  IconShieldCheck,
-  IconStar,
-  IconTool,
-  IconUser,
-  IconUsers,
-  IconX,
-} from "@tabler/icons-react";
+import { IconUser, IconX } from "@tabler/icons-react";
 import Image from "next/image";
 import { useState } from "react";
 import { ScrollReveal } from "@/components/animations/ScrollReveal";
 import { buttonVariants } from "@/components/ui/button";
+import { resolveIcon } from "@/lib/content/icons";
 import type { TeamMember } from "@/lib/hygraph";
-
-const strengths = [
-  { icon: IconClock24, label: "30+ Years Experience" },
-  { icon: IconStar, label: "100+ Five Star Reviews" },
-  { icon: IconCertificate, label: "Certified Technicians" },
-  { icon: IconShieldCheck, label: "Warranty Backed" },
-  { icon: IconTool, label: "40+ Brand Partners" },
-  { icon: IconUsers, label: "Customer First" },
-];
+import type { AboutContentData } from "./defaults";
 
 interface Props {
+  content: AboutContentData;
   team: TeamMember[];
 }
 
-export function AboutContent({ team }: Props) {
+export function AboutContent({ content, team }: Props) {
   const [openId, setOpenId] = useState<string | null>(null);
   const openMember = team.find((m) => m.id === openId) ?? null;
 
@@ -40,14 +25,13 @@ export function AboutContent({ team }: Props) {
       <section className="pt-32 pb-16 md:pt-40 md:pb-20">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <p className="mb-3 font-semibold text-[#077BFF] text-sm uppercase tracking-wide">
-            About Us
+            {content.hero.eyebrow}
           </p>
           <h1 className="font-bold font-heading text-4xl md:text-5xl">
-            More than a shop — we&apos;re builders.
+            {content.hero.headline}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-gray-500 text-lg">
-            30+ years of turning stock trucks into something worth talking
-            about. Based in Eastern NC.
+            {content.hero.subhead}
           </p>
         </div>
       </section>
@@ -59,31 +43,13 @@ export function AboutContent({ team }: Props) {
             <ScrollReveal>
               <div>
                 <h2 className="mb-6 font-bold font-heading text-3xl">
-                  Built on passion, driven by results.
+                  {content.storyHeading}
                 </h2>
-                <div className="space-y-4 text-gray-500 leading-relaxed">
-                  <p>
-                    Dealer Lifts started over 30 years ago with a simple
-                    mission: build the best trucks and off-road vehicles in
-                    North Carolina. What began as a small garage operation has
-                    grown into a full-service performance shop trusted by
-                    hundreds of satisfied customers.
-                  </p>
-                  <p>
-                    We&apos;ve built our reputation on quality workmanship,
-                    honest pricing, and a genuine love for what we do. Every
-                    vehicle that rolls out of our shop is a testament to our
-                    commitment to excellence — from a simple oil change to a
-                    complete custom build.
-                  </p>
-                  <p>
-                    With partnerships with over 40 premium brands including
-                    Carli Suspension, BDS, Method Race Wheels, Morimoto, and
-                    Borla, we have access to the best parts in the industry. And
-                    our team of certified technicians knows how to install them
-                    right.
-                  </p>
-                </div>
+                <div
+                  className="space-y-4 text-gray-500 leading-relaxed"
+                  // biome-ignore lint/security/noDangerouslySetInnerHtml: Hygraph sanitizes rich-text HTML output server-side
+                  dangerouslySetInnerHTML={{ __html: content.storyBody }}
+                />
               </div>
             </ScrollReveal>
 
@@ -116,17 +82,20 @@ export function AboutContent({ team }: Props) {
       <section className="border-gray-100 border-y bg-gray-50 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
-            {strengths.map((item) => (
-              <div
-                className="flex flex-col items-center gap-2 text-center"
-                key={item.label}
-              >
-                <item.icon className="text-[#077BFF]" size={22} />
-                <span className="font-medium text-gray-700 text-sm">
-                  {item.label}
-                </span>
-              </div>
-            ))}
+            {content.strengths.map((item) => {
+              const Icon = resolveIcon(item.icon);
+              return (
+                <div
+                  className="flex flex-col items-center gap-2 text-center"
+                  key={item.label}
+                >
+                  <Icon className="text-[#077BFF]" size={22} />
+                  <span className="font-medium text-gray-700 text-sm">
+                    {item.label}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -218,14 +187,13 @@ export function AboutContent({ team }: Props) {
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
             <div className="lg:col-span-4">
               <p className="mb-3 font-semibold text-[#077BFF] text-sm uppercase tracking-wide">
-                The Crew
+                {content.teamEyebrow}
               </p>
               <h2 className="mb-4 font-bold font-heading text-3xl">
-                Meet the team behind the builds.
+                {content.teamHeading}
               </h2>
               <p className="text-gray-500 text-sm leading-relaxed">
-                Every member of our crew brings real-world experience and a
-                passion for getting it right the first time.
+                {content.teamSubhead}
               </p>
             </div>
 

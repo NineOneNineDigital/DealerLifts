@@ -131,6 +131,28 @@ function cardInput(card) {
 }
 
 /**
+ * Hygraph's RichTextAST scalar does NOT accept a bare HTML string on create —
+ * confirmed by introspecting AboutPageCreateInput, which reports
+ * `storyBody: RichTextAST` ("Slate-compatible RichText AST"), not String.
+ * The API wants a Slate-style document: { children: [{ type: "paragraph",
+ * children: [{ text }] }, ...] }.
+ *
+ * ABOUT_DEFAULTS.storyBody is plain `<p>...</p>` markup with no nested
+ * formatting (no bold/links/lists), so this is a minimal one-paragraph-per-
+ * <p> converter, not a general HTML-to-Slate converter. It would need
+ * extending before reuse on richer content.
+ */
+function htmlParagraphsToRichTextAst(html) {
+  const paragraphs = [...html.matchAll(/<p>([\s\S]*?)<\/p>/g)].map((m) => m[1]);
+  return {
+    children: paragraphs.map((text) => ({
+      type: "paragraph",
+      children: [{ text }],
+    })),
+  };
+}
+
+/**
  * Each entry maps a CLI name to its model, its defaults module, and a builder
  * turning those defaults into the model's CreateInput. `wrap` is the
  * card-normalizing function resolved at runtime from introspection.
@@ -176,8 +198,25 @@ const PAGES = {
       ctaBanner: { create: { ...d.ctaBanner } },
     }),
   },
-  // about / careers / gallery / contact entries are added by the
-  // tasks that create each page's defaults module.
+  about: {
+    model: "AboutPage",
+    plural: "aboutPages",
+    load: () => import("../app/(site)/about/defaults.ts"),
+    key: "ABOUT_DEFAULTS",
+    build: (d) => ({
+      seoTitle: d.seoTitle,
+      seoDescription: d.seoDescription,
+      hero: { create: { ...d.hero } },
+      storyHeading: d.storyHeading,
+      storyBody: htmlParagraphsToRichTextAst(d.storyBody),
+      strengths: { create: d.strengths.map((s) => ({ ...s })) },
+      teamEyebrow: d.teamEyebrow,
+      teamHeading: d.teamHeading,
+      teamSubhead: d.teamSubhead,
+    }),
+  },
+  // careers / gallery / contact entries are added by the tasks that create
+  // each page's defaults module.
 };
 
 const run = async () => {
