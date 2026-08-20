@@ -1,5 +1,6 @@
 import { cache } from "react";
-import { list, str } from "@/lib/content/merge";
+import { list, optStr, str } from "@/lib/content/merge";
+import { toIconCard } from "@/lib/content/normalize";
 import type {
   IconCard,
   PageHero,
@@ -179,47 +180,28 @@ const QUERY = /* GraphQL */ `
   }
 `;
 
-/**
- * Normalize one CMS card. Cards arrive whole from the CMS or not at all, so
- * unlike scalars there is no per-field default to fall back to — missing
- * values become "" / [] to satisfy the no-optionals contract. An unrecognized
- * icon string is passed through for resolveIcon() to handle at render.
- */
-function toIconCard(raw: RawIconCard): IconCard {
-  return {
-    icon: (raw.icon ?? "") as IconCard["icon"],
-    title: raw.title?.trim() ?? "",
-    description: raw.description?.trim() ?? "",
-    tags: raw.tags ?? [],
-    href: raw.href?.trim() ?? "",
-  };
-}
-
 /** Pure merge of a Hygraph response over SERVICES_DEFAULTS. Exported for tests. */
 export function mergeServicesContent(
   cms: RawServicesPage | null
 ): ServicesContent {
-  if (!cms) {
-    return SERVICES_DEFAULTS;
-  }
-
+  const src = cms ?? {};
   const d = SERVICES_DEFAULTS;
 
   return {
-    seoTitle: str(cms.seoTitle, d.seoTitle),
-    seoDescription: str(cms.seoDescription, d.seoDescription),
+    seoTitle: str(src.seoTitle, d.seoTitle),
+    seoDescription: str(src.seoDescription, d.seoDescription),
     hero: {
-      eyebrow: str(cms.hero?.eyebrow, d.hero.eyebrow),
-      headline: str(cms.hero?.headline, d.hero.headline),
-      headlineAccent: str(cms.hero?.headlineAccent, d.hero.headlineAccent),
-      subhead: str(cms.hero?.subhead, d.hero.subhead),
+      eyebrow: str(src.hero?.eyebrow, d.hero.eyebrow),
+      headline: str(src.hero?.headline, d.hero.headline),
+      headlineAccent: optStr(src.hero?.headlineAccent, d.hero.headlineAccent),
+      subhead: str(src.hero?.subhead, d.hero.subhead),
     },
-    services: list(cms.services?.map(toIconCard), d.services),
-    processEyebrow: str(cms.processEyebrow, d.processEyebrow),
-    processHeading: str(cms.processHeading, d.processHeading),
-    processCtaLabel: str(cms.processCtaLabel, d.processCtaLabel),
-    processCtaHref: str(cms.processCtaHref, d.processCtaHref),
-    processSteps: list(cms.processSteps?.map(toIconCard), d.processSteps),
+    services: list(src.services?.map(toIconCard), d.services),
+    processEyebrow: str(src.processEyebrow, d.processEyebrow),
+    processHeading: str(src.processHeading, d.processHeading),
+    processCtaLabel: str(src.processCtaLabel, d.processCtaLabel),
+    processCtaHref: str(src.processCtaHref, d.processCtaHref),
+    processSteps: list(src.processSteps?.map(toIconCard), d.processSteps),
   };
 }
 
@@ -234,5 +216,15 @@ export const getServicesContent = cache(async (): Promise<ServicesContent> => {
     servicesPages: RawServicesPage[] | null;
   }>(QUERY);
 
-  return mergeServicesContent(data?.servicesPages?.[0] ?? null);
+  const entry = data?.servicesPages?.[0] ?? null;
+  if (data && !entry) {
+    const msg =
+      "[hygraph] servicesPages returned no entry — rendering defaults";
+    if (process.env.HYGRAPH_STRICT === "1") {
+      throw new Error(msg);
+    }
+    console.warn(msg);
+  }
+
+  return mergeServicesContent(entry);
 });

@@ -13,6 +13,12 @@ describe("mergeServicesContent", () => {
     expect(mergeServicesContent({})).toEqual(SERVICES_DEFAULTS);
   });
 
+  it("returns a fresh services array on a null CMS response, not the defaults singleton", () => {
+    const result = mergeServicesContent(null);
+
+    expect(result.services).not.toBe(SERVICES_DEFAULTS.services);
+  });
+
   it("lets CMS values win over defaults", () => {
     const result = mergeServicesContent({
       seoTitle: "Our Services",
@@ -31,6 +37,15 @@ describe("mergeServicesContent", () => {
     expect(result.hero.headline).toBe("New headline");
     expect(result.hero.eyebrow).toBe(SERVICES_DEFAULTS.hero.eyebrow);
     expect(result.hero.subhead).toBe(SERVICES_DEFAULTS.hero.subhead);
+  });
+
+  it("lets an editor clear headlineAccent to render a one-line headline, while a cleared headline still falls back", () => {
+    const result = mergeServicesContent({
+      hero: { headline: "", headlineAccent: "" },
+    });
+
+    expect(result.hero.headlineAccent).toBe("");
+    expect(result.hero.headline).toBe(SERVICES_DEFAULTS.hero.headline);
   });
 
   it("replaces the whole services list rather than interleaving", () => {

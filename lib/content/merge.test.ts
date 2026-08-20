@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { list, num, str } from "@/lib/content/merge";
+import { list, num, optStr, str } from "@/lib/content/merge";
 
 describe("str", () => {
   it("returns the CMS value when present", () => {
@@ -46,6 +46,28 @@ describe("num", () => {
 
   it("falls back when the value is undefined", () => {
     expect(num(undefined, 7)).toBe(7);
+  });
+});
+
+describe("optStr", () => {
+  it("falls back when the value is null", () => {
+    expect(optStr(null, "default")).toBe("default");
+  });
+
+  it("falls back when the value is undefined", () => {
+    expect(optStr(undefined, "default")).toBe("default");
+  });
+
+  it("treats an empty string as a deliberate clear, not a fallback", () => {
+    expect(optStr("", "default")).toBe("");
+  });
+
+  it("trims a whitespace-only value down to an empty string", () => {
+    expect(optStr("   ", "default")).toBe("");
+  });
+
+  it("returns the trimmed CMS value when present", () => {
+    expect(optStr("  From the CMS  ", "default")).toBe("From the CMS");
   });
 });
 

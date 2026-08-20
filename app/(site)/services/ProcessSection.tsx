@@ -44,7 +44,8 @@ export function ProcessSection({
           {steps.map((step, i) => {
             const Icon = resolveIcon(step.icon);
             return (
-              <ScrollReveal key={step.title} delay={i * 0.1}>
+              // biome-ignore lint/suspicious/noArrayIndexKey: title alone can collide when CMS cards are mid-edit; index disambiguates
+              <ScrollReveal key={`${i}-${step.title}`} delay={i * 0.1}>
                 <div className="relative">
                   <span className="text-6xl font-heading font-bold text-gray-100 leading-none select-none">
                     {String(i + 1).padStart(2, "0")}

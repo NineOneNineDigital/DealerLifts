@@ -17,7 +17,8 @@ export function ServicesGrid({ items }: Props) {
           {items.map((service, i) => {
             const Icon = resolveIcon(service.icon);
             return (
-              <ScrollReveal key={service.title} delay={i * 0.05}>
+              // biome-ignore lint/suspicious/noArrayIndexKey: title alone can collide when CMS cards are mid-edit; index disambiguates
+              <ScrollReveal key={`${i}-${service.title}`} delay={i * 0.05}>
                 <div className="flex gap-4 p-5 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors group">
                   <div className="w-10 h-10 bg-[#077BFF]/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-[#077BFF]/15 transition-colors">
                     <Icon size={20} className="text-[#077BFF]" />

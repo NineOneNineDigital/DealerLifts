@@ -25,6 +25,23 @@ export function num(
 }
 
 /**
+ * Optional-field merge: distinguishes "never set" from "deliberately cleared".
+ * Returns the fallback only when the CMS value is null/undefined; a blank
+ * string is an intentional clear and yields "". Use for fields the renderer
+ * omits when empty (headlineAccent, href, eyebrow); use str() for fields that
+ * must always render something.
+ */
+export function optStr(
+  value: string | null | undefined,
+  fallback: string
+): string {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+  return value.trim();
+}
+
+/**
  * CMS list, or the entire fallback list when null/undefined/empty.
  *
  * All-or-nothing by design: a partly-filled list means the owner is mid-edit,
