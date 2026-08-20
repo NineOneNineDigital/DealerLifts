@@ -4,39 +4,29 @@ import { Dialog } from "@base-ui/react/dialog";
 import {
   IconBriefcase,
   IconClock,
-  IconHeart,
   IconMail,
   IconMapPin,
-  IconTool,
-  IconTrophy,
-  IconUsers,
   IconX,
 } from "@tabler/icons-react";
 import { useState } from "react";
 import { ScrollReveal } from "@/components/animations/ScrollReveal";
 import { buttonVariants } from "@/components/ui/button";
+import { resolveIcon } from "@/lib/content/icons";
 import type { JobPosition } from "@/lib/hygraph";
-
-const APPLY_EMAIL = "info@dealerliftsinc.com";
-
-const perks = [
-  { icon: IconTool, label: "Top-tier brands & parts" },
-  { icon: IconUsers, label: "Team-first culture" },
-  { icon: IconHeart, label: "Competitive pay & benefits" },
-  { icon: IconTrophy, label: "Growth opportunities" },
-];
+import type { CareersContentData } from "./defaults";
 
 interface Props {
+  content: CareersContentData;
   loadError: string | null;
   positions: JobPosition[];
 }
 
-function buildMailto(jobTitle: string) {
+function buildMailto(jobTitle: string, email: string) {
   const subject = encodeURIComponent(`Application: ${jobTitle}`);
   const body = encodeURIComponent(
     `Hi Dealer Lifts team,\n\nI'd like to apply for the ${jobTitle} position. My resume is attached.\n\nThanks,\n`
   );
-  return `mailto:${APPLY_EMAIL}?subject=${subject}&body=${body}`;
+  return `mailto:${email}?subject=${subject}&body=${body}`;
 }
 
 /** Collapse a rich-text plain-text description into a clean single-line teaser
@@ -76,10 +66,12 @@ function JobMeta({ position }: { position: JobPosition }) {
 }
 
 function PositionsList({
+  applyEmail,
   positions,
   loadError,
   onOpen,
 }: {
+  applyEmail: string;
   positions: JobPosition[];
   loadError: string | null;
   onOpen: (id: string) => void;
@@ -88,8 +80,8 @@ function PositionsList({
     return (
       <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900 text-sm">
         We couldn&apos;t load open positions right now. Please email{" "}
-        <a className="underline" href={`mailto:${APPLY_EMAIL}`}>
-          {APPLY_EMAIL}
+        <a className="underline" href={`mailto:${applyEmail}`}>
+          {applyEmail}
         </a>{" "}
         to inquire about opportunities.
       </div>
@@ -107,9 +99,9 @@ function PositionsList({
           resume to{" "}
           <a
             className="text-[#077BFF] hover:underline"
-            href={`mailto:${APPLY_EMAIL}`}
+            href={`mailto:${applyEmail}`}
           >
-            {APPLY_EMAIL}
+            {applyEmail}
           </a>
           .
         </p>
@@ -153,7 +145,7 @@ function PositionsList({
   );
 }
 
-export function CareersContent({ positions, loadError }: Props) {
+export function CareersContent({ content, positions, loadError }: Props) {
   const [openId, setOpenId] = useState<string | null>(null);
   const openPosition = positions.find((p) => p.id === openId) ?? null;
 
@@ -163,25 +155,28 @@ export function CareersContent({ positions, loadError }: Props) {
       <section className="pt-32 pb-16 md:pt-40 md:pb-20">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <p className="mb-3 font-semibold text-[#077BFF] text-sm uppercase tracking-wide">
-            Careers
+            {content.hero.eyebrow}
           </p>
           <h1 className="font-bold font-heading text-4xl md:text-5xl">
-            Build trucks. Build a career.
+            {content.hero.headline}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-gray-500 text-lg">
-            We&apos;re always looking for talented, passionate people to join
-            the Dealer Lifts crew.
+            {content.hero.subhead}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-6">
-            {perks.map((perk) => (
-              <div
-                className="flex items-center gap-2 text-gray-500 text-sm"
-                key={perk.label}
-              >
-                <perk.icon className="text-[#077BFF]" size={16} />
-                <span>{perk.label}</span>
-              </div>
-            ))}
+            {content.perks.map((perk, i) => {
+              const Icon = resolveIcon(perk.icon);
+              return (
+                <div
+                  className="flex items-center gap-2 text-gray-500 text-sm"
+                  // biome-ignore lint/suspicious/noArrayIndexKey: label alone can collide when CMS perks are mid-edit; index disambiguates
+                  key={`${i}-${perk.label}`}
+                >
+                  <Icon className="text-[#077BFF]" size={16} />
+                  <span>{perk.label}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -190,17 +185,20 @@ export function CareersContent({ positions, loadError }: Props) {
       <section className="pb-24">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <div className="mb-6 flex items-end justify-between">
-            <h2 className="font-bold font-heading text-2xl">Open Positions</h2>
+            <h2 className="font-bold font-heading text-2xl">
+              {content.positionsHeading}
+            </h2>
             <a
               className="hidden items-center gap-1.5 text-[#077BFF] text-sm hover:underline sm:inline-flex"
-              href={`mailto:${APPLY_EMAIL}`}
+              href={`mailto:${content.applyEmail}`}
             >
               <IconMail size={14} />
-              {APPLY_EMAIL}
+              {content.applyEmail}
             </a>
           </div>
 
           <PositionsList
+            applyEmail={content.applyEmail}
             loadError={loadError}
             onOpen={setOpenId}
             positions={positions}
@@ -264,7 +262,7 @@ export function CareersContent({ positions, loadError }: Props) {
                   </Dialog.Close>
                   <a
                     className={buttonVariants()}
-                    href={buildMailto(openPosition.name)}
+                    href={buildMailto(openPosition.name, content.applyEmail)}
                   >
                     <IconMail size={16} />
                     Email your application

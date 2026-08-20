@@ -240,8 +240,22 @@ const PAGES = {
       teamSubhead: d.teamSubhead,
     }),
   },
-  // careers / gallery / contact entries are added by the tasks that create
-  // each page's defaults module.
+  careers: {
+    model: "CareersPage",
+    plural: "careersPages",
+    load: () => import("../app/(site)/careers/defaults.ts"),
+    key: "CAREERS_DEFAULTS",
+    build: (d) => ({
+      seoTitle: d.seoTitle,
+      seoDescription: d.seoDescription,
+      hero: { create: { ...d.hero } },
+      perks: { create: d.perks.map((p) => ({ ...p })) },
+      positionsHeading: d.positionsHeading,
+      applyEmail: d.applyEmail,
+    }),
+  },
+  // gallery / contact entries are added by the tasks that create each page's
+  // defaults module.
 };
 
 const run = async () => {
