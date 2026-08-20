@@ -1,17 +1,21 @@
 #!/usr/bin/env node
 /**
- * Seeds the Hygraph ServicesPage entry from the code defaults, then publishes it.
+ * Seeds a Hygraph page entry from that page's code defaults, then publishes it.
  *
- * The copy comes from app/(site)/services/defaults.ts — the same object the
- * page falls back to — so the CMS starts byte-identical to the rendered site
- * and there is one source of truth rather than two hand-synced ones.
+ * The copy comes from that page's app/(site)/**\/defaults.ts — the same
+ * object the page falls back to — so the CMS starts byte-identical to the
+ * rendered site and there is one source of truth rather than two hand-synced
+ * ones.
  *
- * Run scripts/hygraph-migrate.mjs first; this needs the schema to exist.
+ * Run scripts/hygraph-migrate.mjs and scripts/hygraph-migrate-phase2.mjs
+ * first; this needs the schema to exist.
  *
  * Usage:
- *   node scripts/hygraph-seed.mjs --introspect  # print the generated input shape
- *   node scripts/hygraph-seed.mjs --dry-run     # print the mutation, send nothing
- *   node scripts/hygraph-seed.mjs               # create and publish
+ *   node scripts/hygraph-seed.mjs <page> --introspect  # print the generated input shape
+ *   node scripts/hygraph-seed.mjs <page> --dry-run     # print the mutation, send nothing
+ *   node scripts/hygraph-seed.mjs <page>               # create and publish
+ *
+ * <page> is one of the keys of PAGES below (e.g. "services").
  *
  * Requires a token with content mutation + publish permissions on the
  * Published stage. HYGRAPH_MUTATION_TOKEN if set, otherwise
@@ -21,7 +25,6 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { SERVICES_DEFAULTS } from "../app/(site)/services/defaults.ts";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ENV_LINE = /^([A-Z0-9_]+)=(.*)$/;
@@ -47,6 +50,7 @@ const token =
   process.env.HYGRAPH_MUTATION_TOKEN ?? process.env.HYGRAPH_MANAGEMENT_TOKEN;
 const introspectOnly = process.argv.includes("--introspect");
 const dryRun = process.argv.includes("--dry-run");
+const pageArg = process.argv.slice(2).find((arg) => !arg.startsWith("--"));
 
 /**
  * Mutations must go to the regular Content API, not the CDN read endpoint.
@@ -126,22 +130,44 @@ function cardInput(card) {
   };
 }
 
-function buildData(cardsWrapper) {
-  const d = SERVICES_DEFAULTS;
-  return {
-    seoTitle: d.seoTitle,
-    seoDescription: d.seoDescription,
-    hero: { create: { ...d.hero } },
-    services: { create: d.services.map(cardsWrapper) },
-    processEyebrow: d.processEyebrow,
-    processHeading: d.processHeading,
-    processCtaLabel: d.processCtaLabel,
-    processCtaHref: d.processCtaHref,
-    processSteps: { create: d.processSteps.map(cardsWrapper) },
-  };
-}
+/**
+ * Each entry maps a CLI name to its model, its defaults module, and a builder
+ * turning those defaults into the model's CreateInput. `wrap` is the
+ * card-normalizing function resolved at runtime from introspection.
+ */
+const PAGES = {
+  services: {
+    model: "ServicesPage",
+    plural: "servicesPages",
+    load: () => import("../app/(site)/services/defaults.ts"),
+    key: "SERVICES_DEFAULTS",
+    build: (d, wrap) => ({
+      seoTitle: d.seoTitle,
+      seoDescription: d.seoDescription,
+      hero: { create: { ...d.hero } },
+      services: { create: d.services.map(wrap) },
+      processEyebrow: d.processEyebrow,
+      processHeading: d.processHeading,
+      processCtaLabel: d.processCtaLabel,
+      processCtaHref: d.processCtaHref,
+      processSteps: { create: d.processSteps.map(wrap) },
+    }),
+  },
+  // home / about / careers / gallery / contact entries are added by the
+  // tasks that create each page's defaults module.
+};
 
 const run = async () => {
+  if (!(pageArg && PAGES[pageArg])) {
+    console.error(
+      "Usage: node scripts/hygraph-seed.mjs <page> [--dry-run|--introspect]\n\n" +
+        `<page> must be one of: ${Object.keys(PAGES).join(", ")}`
+    );
+    process.exit(1);
+  }
+
+  const page = PAGES[pageArg];
+
   if (!token) {
     console.error(
       "No token. Set HYGRAPH_MUTATION_TOKEN (or HYGRAPH_MANAGEMENT_TOKEN) in\n" +
@@ -152,7 +178,7 @@ const run = async () => {
 
   if (introspectOnly) {
     for (const name of [
-      "ServicesPageCreateInput",
+      `${page.model}CreateInput`,
       "IconCardCreateOneInlineInput",
       "IconCardCreateManyInlineInput",
       "PageHeroCreateOneInlineInput",
@@ -171,11 +197,11 @@ const run = async () => {
   }
 
   const existing = await gql(
-    "{ servicesPages(first: 2, stage: DRAFT) { id } }"
+    `{ ${page.plural}(first: 2, stage: DRAFT) { id } }`
   );
-  if (existing.servicesPages.length > 0) {
+  if (existing[page.plural].length > 0) {
     console.error(
-      `A ServicesPage entry already exists (${existing.servicesPages.length} found).\n` +
+      `A ${page.model} entry already exists (${existing[page.plural].length} found).\n` +
         "Refusing to create a second — the app queries first: 1 and takes [0],\n" +
         "so a duplicate would be silently ignored. Delete the existing entry in\n" +
         "Studio first if you want to reseed."
@@ -192,7 +218,9 @@ const run = async () => {
     ? (card) => ({ IconCard: cardInput(card) })
     : cardInput;
 
-  const data = buildData(wrap);
+  const mod = await page.load();
+  const defaults = mod[page.key];
+  const data = page.build(defaults, wrap);
 
   if (dryRun) {
     console.log("Dry run — nothing sent. Mutation data:");
@@ -201,25 +229,25 @@ const run = async () => {
   }
 
   const created = await gql(
-    `mutation Seed($data: ServicesPageCreateInput!) {
-       createServicesPage(data: $data) { id }
+    `mutation Seed($data: ${page.model}CreateInput!) {
+       create${page.model}(data: $data) { id }
      }`,
     { data }
   );
 
-  const { id } = created.createServicesPage;
-  console.log(`Created ServicesPage ${id}`);
+  const { id } = created[`create${page.model}`];
+  console.log(`Created ${page.model} ${id}`);
 
   await gql(
     `mutation Publish($id: ID!) {
-       publishServicesPage(where: { id: $id }, to: PUBLISHED) { id }
+       publish${page.model}(where: { id: $id }, to: PUBLISHED) { id }
      }`,
     { id }
   );
 
   console.log("Published.");
   console.log(
-    "\nNext: grant Read on the Published stage for ServicesPage under\n" +
+    `\nNext: grant Read on the Published stage for ${page.model} under\n` +
       "Project Settings > API Access > Public Content API, then verify with\n" +
       "the curl gate in the Phase 1 plan (Task 4, Step 7)."
   );
@@ -229,7 +257,7 @@ run().catch((error) => {
   console.error("Seed failed:", error.message ?? error);
   console.error(
     "\nIf this is an input-shape error, run with --introspect to print the\n" +
-      "generated input types and compare against buildData()."
+      "generated input types and compare against the page's build()."
   );
   process.exit(1);
 });

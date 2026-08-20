@@ -13,6 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "hygraph:migrate": "node scripts/hygraph-migrate.mjs",
+    "hygraph:migrate:phase2": "node scripts/hygraph-migrate-phase2.mjs",
     "hygraph:seed": "node --experimental-strip-types scripts/hygraph-seed.mjs",
     "format": "biome check --write ."
   },
