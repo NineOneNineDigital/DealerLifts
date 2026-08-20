@@ -48,7 +48,7 @@ describe("mergeCareersContent", () => {
     expect(result.applyEmail).toBe(CAREERS_DEFAULTS.applyEmail);
   });
 
-  it("lets an editor clear headlineAccent to render a one-line headline, while a cleared headline still falls back", () => {
+  it("lets a CMS accent through while a cleared headline falls back", () => {
     const result = mergeCareersContent({
       hero: { headline: "", headlineAccent: "Custom accent" },
     });
