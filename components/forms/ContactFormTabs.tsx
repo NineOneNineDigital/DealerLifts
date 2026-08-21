@@ -20,7 +20,7 @@ const TABS: { id: Tab; label: string; blurb: string }[] = [
   },
 ];
 
-export function ContactFormTabs() {
+export function ContactFormTabs({ phone }: { phone: string }) {
   const [tab, setTab] = useState<Tab>("quote");
   const active = TABS.find((t) => t.id === tab) ?? TABS[0];
 
@@ -31,16 +31,16 @@ export function ContactFormTabs() {
           const isActive = t.id === tab;
           return (
             <button
-              key={t.id}
-              type="button"
-              role="tab"
               aria-selected={isActive}
-              onClick={() => setTab(t.id)}
               className={`-mb-px border-b-2 px-4 py-2.5 font-bold font-heading text-sm uppercase tracking-wider transition-colors ${
                 isActive
                   ? "border-[#077BFF] text-[#077BFF]"
                   : "border-transparent text-gray-400 hover:text-gray-700"
               }`}
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              role="tab"
+              type="button"
             >
               {t.label}
             </button>
@@ -51,7 +51,11 @@ export function ContactFormTabs() {
       <p className="mb-6 text-gray-500 text-sm">{active.blurb}</p>
 
       {/* Only the active form is mounted, so exactly one hCaptcha widget renders. */}
-      {tab === "quote" ? <QuoteForm /> : <ContactForm />}
+      {tab === "quote" ? (
+        <QuoteForm phone={phone} />
+      ) : (
+        <ContactForm phone={phone} />
+      )}
     </div>
   );
 }

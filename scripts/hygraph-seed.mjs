@@ -276,6 +276,21 @@ const PAGES = {
       hero: { create: { ...d.hero } },
     }),
   },
+  settings: {
+    model: "SiteSettings",
+    plural: "siteSettingsEntries",
+    load: () => import("../lib/content/site-settings-defaults.ts"),
+    key: "SITE_SETTINGS_DEFAULTS",
+    build: (d) => ({
+      phone: d.phone,
+      email: d.email,
+      addressStreet: d.addressStreet,
+      addressCityStateZip: d.addressCityStateZip,
+      mapsUrl: d.mapsUrl,
+      hours: { create: d.hours.map((h) => ({ ...h })) },
+      socials: { create: d.socials.map((s) => ({ ...s })) },
+    }),
+  },
 };
 
 const run = async () => {
