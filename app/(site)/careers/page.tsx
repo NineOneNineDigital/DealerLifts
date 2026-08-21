@@ -1,16 +1,22 @@
 import type { Metadata } from "next";
 import { getJobPositions } from "@/lib/hygraph";
 import { CareersContent } from "./CareersContent";
-
-export const metadata: Metadata = {
-  title: "Careers",
-  description:
-    "Join the Dealer Lifts team. We're looking for passionate automotive technicians, fabricators, and service professionals in Eastern NC.",
-};
+import { getCareersContent } from "./content";
 
 export const revalidate = 60;
 
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getCareersContent();
+
+  return {
+    title: content.seoTitle,
+    description: content.seoDescription,
+  };
+}
+
 export default async function CareersPage() {
+  const content = await getCareersContent();
+
   let positions: Awaited<ReturnType<typeof getJobPositions>> = [];
   let loadError: string | null = null;
 
@@ -21,5 +27,11 @@ export default async function CareersPage() {
       error instanceof Error ? error.message : "Failed to load positions";
   }
 
-  return <CareersContent loadError={loadError} positions={positions} />;
+  return (
+    <CareersContent
+      content={content}
+      loadError={loadError}
+      positions={positions}
+    />
+  );
 }

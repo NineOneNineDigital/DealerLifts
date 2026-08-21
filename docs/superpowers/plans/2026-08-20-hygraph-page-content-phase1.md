@@ -801,13 +801,14 @@ Run this against your endpoint, substituting `$HYGRAPH_CONTENT_API_URL` from `.e
 ```bash
 curl -s "$HYGRAPH_CONTENT_API_URL" \
   -H 'Content-Type: application/json' \
-  -d '{"query":"{ servicesPages(first: 1) { seoTitle hero { eyebrow headline headlineAccent subhead } services { icon title description tags href } processEyebrow processHeading processCtaLabel processCtaHref processSteps { icon title description tags href } } }"}' \
+  -d '{"query":"{ servicesPages(first: 1) { seoTitle seoDescription hero { eyebrow headline headlineAccent subhead } services { icon title description tags href } processEyebrow processHeading processCtaLabel processCtaHref processSteps { icon title description tags href } } }"}' \
   | head -c 2000
 ```
 
-Expected: JSON containing `"servicesPages":[{...}]` with your copy, and **no** `"errors"` key.
+Expected: JSON containing `"servicesPages":[{...}]` with your copy — a
+**non-empty array** — and **no** `"errors"` key.
 
-If you see `"errors"`, the field API IDs do not match — fix them in Studio before continuing. Do not proceed to Task 5 until this returns clean data.
+If you see `"errors"`, the field API IDs do not match — fix them in Studio before continuing. If `servicesPages` comes back as an empty array (`[]`), the entry is not published or the Public Content API lacks Read permission on the Published stage — this is the silent-defaults failure mode; fix it before continuing. Do not proceed to Task 5 until this returns clean, non-empty data.
 
 - [ ] **Step 8: Record the schema in the repo**
 

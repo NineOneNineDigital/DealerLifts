@@ -1,11 +1,11 @@
-const ENDPOINT = process.env.HYGRAPH_CONTENT_API_URL;
-const READ_TOKEN = process.env.HYGRAPH_CONTENT_API_READ_TOKEN;
-
 export async function hygraphFetch<T>(
   query: string,
   variables?: Record<string, unknown>,
   options?: { revalidate?: number }
 ): Promise<T> {
+  const ENDPOINT = process.env.HYGRAPH_CONTENT_API_URL;
+  const READ_TOKEN = process.env.HYGRAPH_CONTENT_API_READ_TOKEN;
+
   if (!ENDPOINT) {
     throw new Error(
       "HYGRAPH_CONTENT_API_URL is not set. Add it to .env.local."
@@ -42,6 +42,37 @@ export async function hygraphFetch<T>(
   }
 
   return json.data;
+}
+
+/**
+ * Non-throwing wrapper around {@link hygraphFetch} for page content.
+ *
+ * Page content merges over typed code defaults, so a CMS failure should
+ * degrade rather than 500 — except during CI builds, where shipping defaults
+ * in place of published copy silently reverts the site. `HYGRAPH_STRICT=1`
+ * makes the build fail loudly instead.
+ *
+ * Collection accessors (jobs, team, projects) keep using the throwing
+ * `hygraphFetch`, where an empty list is worse than a visible error.
+ */
+export async function hygraphFetchSafe<T>(
+  query: string,
+  variables?: Record<string, unknown>,
+  options?: { revalidate?: number }
+): Promise<T | null> {
+  try {
+    return await hygraphFetch<T>(query, variables, options);
+  } catch (error) {
+    if (process.env.HYGRAPH_STRICT === "1") {
+      throw error;
+    }
+
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(
+      `[hygraph] content fetch failed, falling back to defaults: ${message}`
+    );
+    return null;
+  }
 }
 
 export interface JobPosition {
