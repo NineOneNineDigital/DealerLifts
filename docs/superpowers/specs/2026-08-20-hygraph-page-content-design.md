@@ -85,11 +85,11 @@ The home hero headline renders as two lines with the second in a gradient — `h
 
 ### Explicit exclusions
 
-- **Contact sidebar details** (phone, email, address, hours, social links) stay hardcoded. They are global rather than page-scoped — the phone number is currently duplicated across at least `Hero.tsx`, `CTABanner.tsx`, `contact/page.tsx`, and the contact metadata — so doing them correctly requires a `SiteSettings` singleton. Deferred to a follow-up.
+- **Contact sidebar details** (phone, email, address, hours, social links) were out of scope for the page-content phases because they are global rather than page-scoped. **Delivered since, by the `SiteSettings` singleton** — see the Site Settings section below.
 - **Brand logo wall** (`BrandPartners.tsx`) stays in code; it is image assets, not text.
 - **Nav and footer** stay in code.
 
-**Known inconsistency:** `CtaBlock` gives the owner editable phone fields on the home hero and CTA banner, but the contact sidebar and footer phone remain code-only. Accepted for this phase; resolved by the `SiteSettings` follow-up.
+**Resolved:** `CtaBlock` gave the owner editable phone fields on the home hero and CTA banner while the contact sidebar and footer stayed code-only. The `SiteSettings` singleton closed that gap — every phone rendering now comes from the CMS.
 
 ## Architecture
 
@@ -236,9 +236,46 @@ Then, in order: **Home** (largest — two `CtaBlock`s, stats, testimonials, serv
 
 Each page is an independent, shippable commit. Stopping after any page leaves the site in a consistent state: some pages CMS-driven, the rest hardcoded, all rendering correctly.
 
+## Site Settings
+
+Global contact details live in a `SiteSettings` singleton, queried
+`siteSettingsEntries(first: 1)` and merged over
+`lib/content/site-settings-defaults.ts` exactly like page content.
+
+| Field | Notes |
+|---|---|
+| `phone` | Display form. The `tel:` href is derived from the digits by `telHref()`, so an editor cannot desync a label from its link. |
+| `email` | Drives every `mailto:`. |
+| `addressStreet`, `addressCityStateZip` | Two fields because the footer renders one line and the contact sidebar renders two. |
+| `mapsUrl` | The footer address link and the contact page's embedded map. |
+| `hours[]` | `HoursRow { label, value }`. A list, not fixed weekday fields, so holiday hours are an edit rather than a deploy. Rows whose value is "Closed" render muted. |
+| `socials[]` | `SocialLink { platform (enum), url }`. Brand icons stay out of `ICON_MAP` — that enum serves page content. `socialIcon()` maps platform to icon and returns null for unmapped values, so the link is omitted rather than rendered with a wrong mark. |
+
+**Consumers:** the footer and navbar (via `app/(site)/layout.tsx`), the contact
+page sidebar, the shop CTA, and both forms' captcha-failure message. Nothing
+renders a hardcoded phone number any more.
+
+`getSiteSettings()` is `cache()`-wrapped, so a layout and a page both calling
+it still perform one request per render.
+
+**Retry on 429.** Fetching settings in the site layout means every page
+requests them. A cold-cache production build renders all pages in parallel
+workers, which burst at Hygraph together and tripped its rate limit — failing
+the build under `HYGRAPH_STRICT`. `hygraphFetch` now retries 429/502/503/504
+with backoff, honouring `Retry-After`. Non-transient statuses fail immediately.
+
+**Accepted deviation:** the phone `tel:` href changed from `tel:919-275-8095`
+to `tel:9192758095`. Functionally identical. The alternative — separate label
+and href fields — lets an editor ship a dial button that calls a different
+number than it displays.
+
+**Visible change:** the footer's hours went from two rows (`Sat & Sun / Closed`)
+to three (`Saturday`, `Sunday`), matching the contact page so one list can feed
+both. The owner can merge them back in Hygraph.
+
 ## Follow-ups (not in scope)
 
-- `SiteSettings` singleton for phone, email, address, hours, and social links — resolves the phone-number duplication across four files and the noted `CtaBlock` inconsistency.
+- ~~`SiteSettings` singleton~~ — **done.** See the Site Settings section below.
 - Hygraph webhook → `app/api/revalidate/route.ts` for instant publishing, if 60-second ISR proves too slow.
 - Brand logo wall moved to Hygraph assets.
 - Open Graph metadata is not CMS-driven. `app/layout.tsx:43-47` hardcodes `openGraph.title`/`description`, and Next replaces rather than deep-merges `openGraph`, so a naive per-page override would drop the layout's OG images. Today, an owner who edits a page's SEO title in Hygraph sees `<title>` change, but the Facebook/Slack/iMessage preview still shows the site-wide copy. Fixing it needs a per-page image decision, which is why it is deferred rather than done.

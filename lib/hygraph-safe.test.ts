@@ -46,8 +46,12 @@ describe("hygraphFetchSafe", () => {
   });
 
   it("returns null on a non-2xx response", async () => {
+    // 500 rather than 503: 503 is retryable, so it would sleep through the
+    // full backoff chain here. Retry behaviour has its own suite with fake
+    // timers in lib/hygraph-retry.test.ts, including a retryable status that
+    // exhausts its attempts.
     stubFetch(() =>
-      Promise.resolve({ ok: false, status: 503, statusText: "Unavailable" })
+      Promise.resolve({ ok: false, status: 500, statusText: "Server Error" })
     );
 
     await expect(hygraphFetchSafe(QUERY)).resolves.toBeNull();

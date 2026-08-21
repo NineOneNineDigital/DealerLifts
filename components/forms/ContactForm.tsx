@@ -7,12 +7,12 @@ import { useForm } from "react-hook-form";
 import { HCAPTCHA_SITEKEY, submitToWeb3Forms } from "@/lib/forms/web3forms";
 
 interface ContactFormData {
-  name: string;
   email: string;
   message: string;
+  name: string;
 }
 
-export function ContactForm() {
+export function ContactForm({ phone }: { phone: string }) {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -57,71 +57,86 @@ export function ContactForm() {
 
   if (submitted) {
     return (
-      <div className="text-center py-8">
-        <h3 className="font-heading text-xl font-bold mb-2">Message Sent!</h3>
+      <div className="py-8 text-center">
+        <h3 className="mb-2 font-bold font-heading text-xl">Message Sent!</h3>
         <p className="text-gray-500 text-sm">We&apos;ll be in touch soon.</p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
       <div>
-        <label htmlFor="contact-name" className="block text-sm font-medium text-gray-700 mb-1.5">
+        <label
+          className="mb-1.5 block font-medium text-gray-700 text-sm"
+          htmlFor="contact-name"
+        >
           Name *
         </label>
         <input
           id="contact-name"
           type="text"
           {...register("name", { required: "Name is required" })}
-          className="w-full bg-white border border-gray-300 rounded px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-[#077BFF] focus:outline-none focus:ring-1 focus:ring-[#077BFF] transition-colors"
+          className="w-full rounded border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 transition-colors focus:border-[#077BFF] focus:outline-none focus:ring-1 focus:ring-[#077BFF]"
           placeholder="Your name"
         />
-        {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name.message}</p>}
+        {errors.name && (
+          <p className="mt-1 text-red-400 text-xs">{errors.name.message}</p>
+        )}
       </div>
       <div>
-        <label htmlFor="contact-email" className="block text-sm font-medium text-gray-700 mb-1.5">
+        <label
+          className="mb-1.5 block font-medium text-gray-700 text-sm"
+          htmlFor="contact-email"
+        >
           Email *
         </label>
         <input
           id="contact-email"
           type="email"
           {...register("email", { required: "Email is required" })}
-          className="w-full bg-white border border-gray-300 rounded px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-[#077BFF] focus:outline-none focus:ring-1 focus:ring-[#077BFF] transition-colors"
+          className="w-full rounded border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 transition-colors focus:border-[#077BFF] focus:outline-none focus:ring-1 focus:ring-[#077BFF]"
           placeholder="your@email.com"
         />
-        {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
+        {errors.email && (
+          <p className="mt-1 text-red-400 text-xs">{errors.email.message}</p>
+        )}
       </div>
       <div>
-        <label htmlFor="contact-message" className="block text-sm font-medium text-gray-700 mb-1.5">
+        <label
+          className="mb-1.5 block font-medium text-gray-700 text-sm"
+          htmlFor="contact-message"
+        >
           Message *
         </label>
         <textarea
           id="contact-message"
           rows={4}
           {...register("message", { required: "Message is required" })}
-          className="w-full bg-white border border-gray-300 rounded px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-[#077BFF] focus:outline-none focus:ring-1 focus:ring-[#077BFF] transition-colors resize-none"
+          className="w-full resize-none rounded border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 transition-colors focus:border-[#077BFF] focus:outline-none focus:ring-1 focus:ring-[#077BFF]"
           placeholder="How can we help you?"
         />
-        {errors.message && <p className="text-red-400 text-xs mt-1">{errors.message.message}</p>}
+        {errors.message && (
+          <p className="mt-1 text-red-400 text-xs">{errors.message.message}</p>
+        )}
       </div>
       <HCaptcha
+        onExpire={() => setCaptchaToken("")}
+        onVerify={(token) => setCaptchaToken(token)}
+        reCaptchaCompat={false}
         ref={captchaRef}
         sitekey={HCAPTCHA_SITEKEY}
-        reCaptchaCompat={false}
-        onVerify={(token) => setCaptchaToken(token)}
-        onExpire={() => setCaptchaToken("")}
       />
       <button
-        type="submit"
+        className="w-full rounded bg-[#077BFF] px-6 py-3 font-bold font-heading text-sm text-white uppercase tracking-wider transition-all duration-200 hover:bg-[#0565D4] disabled:opacity-50"
         disabled={submitting || !captchaToken}
-        className="w-full px-6 py-3 bg-[#077BFF] text-white font-heading font-bold text-sm uppercase tracking-wider rounded hover:bg-[#0565D4] transition-all duration-200 disabled:opacity-50"
+        type="submit"
       >
         {submitting ? "Sending..." : "Send Message"}
       </button>
       {failed && (
-        <p className="text-red-500 text-sm text-center">
-          Please complete the captcha, or call us at (919) 275-8095.
+        <p className="text-center text-red-500 text-sm">
+          Please complete the captcha, or call us at {phone}.
         </p>
       )}
     </form>
