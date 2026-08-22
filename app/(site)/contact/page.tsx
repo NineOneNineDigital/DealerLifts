@@ -1,132 +1,172 @@
-import type { Metadata } from "next";
 import {
-  IconPhone,
+  IconClock,
   IconMail,
   IconMapPin,
-  IconClock,
-  IconBrandInstagram,
-  IconBrandFacebook,
-  IconBrandTiktok,
+  IconPhone,
 } from "@tabler/icons-react";
+import type { Metadata } from "next";
 import { ContactFormTabs } from "@/components/forms/ContactFormTabs";
+import {
+  getSiteSettings,
+  socialIcon,
+  telHref,
+} from "@/lib/content/site-settings";
+import { getContactContent } from "./content";
 
-export const metadata: Metadata = {
-  title: "Contact",
-  description:
-    "Get a free quote for your next build or schedule service at Dealer Lifts. Call (919) 275-8095 or fill out our online form.",
-};
+export const revalidate = 60;
 
-export default function ContactPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getContactContent();
+
+  return {
+    title: content.seoTitle,
+    description: content.seoDescription,
+  };
+}
+
+export default async function ContactPage() {
+  const [content, settings] = await Promise.all([
+    getContactContent(),
+    getSiteSettings(),
+  ]);
+  const { hero } = content;
+
   return (
     <>
       <section className="pt-32 pb-16 md:pt-40 md:pb-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-[#077BFF] text-sm font-semibold tracking-wide uppercase mb-3">
-            Get In Touch
+        <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
+          <p className="mb-3 font-semibold text-[#077BFF] text-sm uppercase tracking-wide">
+            {hero.eyebrow}
           </p>
-          <h1 className="font-heading text-4xl md:text-5xl font-bold">
-            Let&apos;s talk about your build.
+          <h1 className="font-bold font-heading text-4xl md:text-5xl">
+            {hero.headline}
+            {hero.headlineAccent && (
+              <>
+                {" "}
+                <span className="bg-gradient-to-r from-[#3D9BFF] via-[#077BFF] to-[#0565D4] bg-clip-text text-transparent">
+                  {hero.headlineAccent}
+                </span>
+              </>
+            )}
           </h1>
-          <p className="mt-4 text-gray-500 text-lg max-w-2xl mx-auto">
-            Request a quote, ask a question, or schedule a consultation.
-            We typically respond within 24 hours.
+          <p className="mx-auto mt-4 max-w-2xl text-gray-500 text-lg">
+            {hero.subhead}
           </p>
         </div>
       </section>
 
-      <section className="pb-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <section className="bg-white pb-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
             {/* Forms */}
             <div className="lg:col-span-2">
-              <ContactFormTabs />
+              <ContactFormTabs phone={settings.phone} />
             </div>
 
             {/* Sidebar */}
             <div className="space-y-8">
               <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">
+                <h3 className="mb-4 font-semibold text-gray-400 text-xs uppercase tracking-wider">
                   Contact
                 </h3>
                 <ul className="space-y-4">
                   <li className="flex items-start gap-3">
-                    <IconPhone size={18} className="text-[#077BFF] mt-0.5 shrink-0" />
-                    <a href="tel:919-275-8095" className="text-gray-900 hover:text-[#077BFF] transition-colors font-medium text-sm">
-                      (919) 275-8095
+                    <IconPhone
+                      className="mt-0.5 shrink-0 text-[#077BFF]"
+                      size={18}
+                    />
+                    <a
+                      className="font-medium text-gray-900 text-sm transition-colors hover:text-[#077BFF]"
+                      href={telHref(settings.phone)}
+                    >
+                      {settings.phone}
                     </a>
                   </li>
                   <li className="flex items-start gap-3">
-                    <IconMail size={18} className="text-[#077BFF] mt-0.5 shrink-0" />
-                    <a href="mailto:info@dealerliftsinc.com" className="text-gray-900 hover:text-[#077BFF] transition-colors font-medium text-sm">
-                      info@dealerliftsinc.com
+                    <IconMail
+                      className="mt-0.5 shrink-0 text-[#077BFF]"
+                      size={18}
+                    />
+                    <a
+                      className="font-medium text-gray-900 text-sm transition-colors hover:text-[#077BFF]"
+                      href={`mailto:${settings.email}`}
+                    >
+                      {settings.email}
                     </a>
                   </li>
                   <li className="flex items-start gap-3">
-                    <IconMapPin size={18} className="text-[#077BFF] mt-0.5 shrink-0" />
+                    <IconMapPin
+                      className="mt-0.5 shrink-0 text-[#077BFF]"
+                      size={18}
+                    />
                     <span className="text-gray-700 text-sm">
-                      73 Crape Myrtle Dr
+                      {settings.addressStreet}
                       <br />
-                      Benson, NC 27504
+                      {settings.addressCityStateZip}
                     </span>
                   </li>
                 </ul>
               </div>
 
               <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-2">
+                <h3 className="mb-4 flex items-center gap-2 font-semibold text-gray-400 text-xs uppercase tracking-wider">
                   <IconClock size={14} />
                   Hours
                 </h3>
                 <ul className="space-y-2 text-sm">
-                  <li className="flex justify-between">
-                    <span className="text-gray-500">Mon&ndash;Fri</span>
-                    <span className="text-gray-700 font-medium">8am&ndash;5pm</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span className="text-gray-500">Saturday</span>
-                    <span className="text-gray-400">Closed</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span className="text-gray-500">Sunday</span>
-                    <span className="text-gray-400">Closed</span>
-                  </li>
+                  {settings.hours.map((row) => (
+                    <li className="flex justify-between" key={row.label}>
+                      <span className="text-gray-500">{row.label}</span>
+                      <span
+                        className={
+                          row.value.trim().toLowerCase() === "closed"
+                            ? "text-gray-400"
+                            : "font-medium text-gray-700"
+                        }
+                      >
+                        {row.value}
+                      </span>
+                    </li>
+                  ))}
                 </ul>
               </div>
 
               <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">
+                <h3 className="mb-4 font-semibold text-gray-400 text-xs uppercase tracking-wider">
                   Follow Us
                 </h3>
                 <div className="flex gap-3">
-                  {[
-                    { href: "https://instagram.com/dealerliftsinc", icon: IconBrandInstagram, label: "Instagram" },
-                    { href: "https://facebook.com/dealerliftsinc", icon: IconBrandFacebook, label: "Facebook" },
-                    { href: "https://tiktok.com/@dealerliftsinc", icon: IconBrandTiktok, label: "TikTok" },
-                  ].map((social) => (
-                    <a
-                      key={social.label}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 hover:text-[#077BFF] hover:bg-[#077BFF]/5 transition-colors"
-                      aria-label={social.label}
-                    >
-                      <social.icon size={17} />
-                    </a>
-                  ))}
+                  {settings.socials.map((social) => {
+                    const Icon = socialIcon(social.platform);
+                    if (!Icon) {
+                      return null;
+                    }
+                    return (
+                      <a
+                        aria-label={social.platform}
+                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-400 transition-colors hover:bg-[#077BFF]/5 hover:text-[#077BFF]"
+                        href={social.url}
+                        key={social.platform}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        <Icon size={17} />
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className="rounded-lg overflow-hidden border border-gray-100">
+              <div className="overflow-hidden rounded-lg border border-gray-100">
                 <iframe
-                  title="Dealer Lifts Location"
-                  src="https://maps.google.com/maps?q=73+Crape+Myrtle+Dr+Benson+NC+27504&output=embed"
-                  width="100%"
-                  height="220"
-                  style={{ border: 0 }}
                   allowFullScreen
+                  height="220"
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
+                  src={`${settings.mapsUrl}&output=embed`}
+                  style={{ border: 0 }}
+                  title="Dealer Lifts Location"
+                  width="100%"
                 />
               </div>
             </div>

@@ -4,8 +4,13 @@ import { IconArrowRight, IconPhone } from "@tabler/icons-react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import type { CtaBlock } from "@/lib/content/types";
 
-export function Hero() {
+interface Props {
+  content: CtaBlock;
+}
+
+export function Hero({ content }: Props) {
   return (
     <section className="relative z-0 flex min-h-[100svh] flex-col overflow-hidden bg-gray-950">
       {/* Background image */}
@@ -21,19 +26,19 @@ export function Hero() {
 
       {/* Soft left-side scrim for headline legibility — right side stays clean so the building/sign show through */}
       <div
-        className="absolute inset-0 bg-gradient-to-r from-gray-950/90 via-gray-950/55 to-transparent"
         aria-hidden
+        className="absolute inset-0 bg-gradient-to-r from-gray-950/90 via-gray-950/55 to-transparent"
       />
       {/* Just enough bottom shading to ground the stat bar */}
       <div
-        className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-gray-950/85 to-transparent"
         aria-hidden
+        className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-gray-950/85 to-transparent"
       />
 
       {/* Brand-blue glow accent */}
       <div
-        className="pointer-events-none absolute -bottom-32 -right-32 h-[520px] w-[520px] rounded-full bg-[#077BFF]/20 blur-[140px]"
         aria-hidden
+        className="pointer-events-none absolute -right-32 -bottom-32 h-[520px] w-[520px] rounded-full bg-[#077BFF]/20 blur-[140px]"
       />
 
       {/* Content */}
@@ -41,15 +46,17 @@ export function Hero() {
         <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-4 pt-32 pb-16 sm:px-6 lg:px-8">
           <motion.h1
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-4xl font-bold font-heading text-white text-[2.75rem] capitalize leading-[1.02] tracking-tight sm:text-6xl md:text-7xl xl:text-[5.5rem]"
+            className="max-w-4xl font-bold font-heading text-[2.75rem] text-white capitalize leading-[1.02] tracking-tight sm:text-6xl md:text-7xl xl:text-[5.5rem]"
             initial={{ opacity: 0, y: 24 }}
             transition={{ duration: 0.7, delay: 0.1 }}
           >
-            Built for performance.
+            {content.headline}
             <br />
-            <span className="bg-gradient-to-r from-[#3D9BFF] via-[#077BFF] to-[#0565D4] bg-clip-text text-transparent">
-              Trusted for everything else.
-            </span>
+            {content.headlineAccent && (
+              <span className="bg-gradient-to-r from-[#3D9BFF] via-[#077BFF] to-[#0565D4] bg-clip-text text-transparent">
+                {content.headlineAccent}
+              </span>
+            )}
           </motion.h1>
 
           <motion.p
@@ -58,9 +65,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.7, delay: 0.2 }}
           >
-            From oil changes and brakes to lift kits and custom builds — every
-            make, every model, all under one roof. Backed by 30&nbsp;years of
-            experience.
+            {content.subhead}
           </motion.p>
 
           <motion.div
@@ -71,9 +76,9 @@ export function Hero() {
           >
             <Link
               className="group inline-flex items-center gap-2 rounded-lg bg-[#077BFF] px-7 py-4 font-semibold text-sm text-white shadow-[#077BFF]/30 shadow-lg transition-all hover:bg-[#0565D4] hover:shadow-[#077BFF]/50 hover:shadow-xl"
-              href="/contact"
+              href={content.buttonHref}
             >
-              Get a free quote
+              {content.buttonLabel}
               <IconArrowRight
                 className="transition-transform group-hover:translate-x-0.5"
                 size={16}
@@ -81,14 +86,13 @@ export function Hero() {
             </Link>
             <a
               className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/[0.04] px-7 py-4 font-semibold text-sm text-white backdrop-blur-md transition-colors hover:border-white/40 hover:bg-white/[0.08]"
-              href="tel:919-275-8095"
+              href={content.phoneHref}
             >
               <IconPhone size={16} />
-              (919) 275-8095
+              {content.phoneLabel}
             </a>
           </motion.div>
         </div>
-
       </div>
     </section>
   );

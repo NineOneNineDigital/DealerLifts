@@ -10,6 +10,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "hygraph:migrate": "node scripts/hygraph-migrate.mjs",
+    "hygraph:migrate:phase2": "node scripts/hygraph-migrate-phase2.mjs",
+    "hygraph:migrate:settings": "node scripts/hygraph-migrate-site-settings.mjs",
+    "hygraph:seed": "node --experimental-strip-types scripts/hygraph-seed.mjs",
     "format": "biome check --write ."
   },
   "dependencies": {
@@ -31,12 +37,14 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.5",
+    "@hygraph/management-sdk": "^1.6.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "ultracite": "^7.2.4"
+    "ultracite": "^7.2.4",
+    "vitest": "^3.2.7"
   }
 }

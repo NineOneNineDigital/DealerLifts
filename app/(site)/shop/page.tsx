@@ -13,6 +13,7 @@ import { ProductGrid } from "@/components/store/ProductGrid";
 import { StoreHero } from "@/components/store/StoreHero";
 import { VehicleFitRail } from "@/components/store/VehicleFitRail";
 import { VehicleSelector } from "@/components/store/VehicleSelector";
+import { getSiteSettings, telHref } from "@/lib/content/site-settings";
 import { listBrands, listNewProducts } from "@/lib/store/source";
 
 const VALUE_PROPS = [
@@ -23,6 +24,8 @@ const VALUE_PROPS = [
 ];
 
 export default async function StorePage() {
+  const settings = await getSiteSettings();
+
   const [newArrivals, brands] = await Promise.all([
     listNewProducts(8),
     listBrands(),
@@ -118,9 +121,9 @@ export default async function StorePage() {
               </Link>
               <a
                 className="rounded-lg bg-white/10 px-8 py-3.5 font-semibold text-white transition-colors hover:bg-white/20"
-                href="tel:919-275-8095"
+                href={telHref(settings.phone)}
               >
-                Call (919) 275-8095
+                Call {settings.phone}
               </a>
             </div>
           </section>

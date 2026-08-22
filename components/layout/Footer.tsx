@@ -1,13 +1,12 @@
-import Link from "next/link";
 import {
-  IconBrandInstagram,
-  IconBrandFacebook,
-  IconBrandTiktok,
   IconArrowUpRight,
+  IconMail,
   IconMapPin,
   IconPhone,
-  IconMail,
 } from "@tabler/icons-react";
+import Link from "next/link";
+import { socialIcon, telHref } from "@/lib/content/site-settings";
+import type { SiteSettings } from "@/lib/content/site-settings-defaults";
 
 const shopLinks = [
   { href: "/services", label: "Services" },
@@ -21,50 +20,37 @@ const companyLinks = [
   { href: "/contact", label: "Contact" },
 ];
 
-const socials = [
-  {
-    href: "https://instagram.com/dealerliftsinc",
-    icon: IconBrandInstagram,
-    label: "Instagram",
-  },
-  {
-    href: "https://facebook.com/dealerliftsinc",
-    icon: IconBrandFacebook,
-    label: "Facebook",
-  },
-  {
-    href: "https://tiktok.com/@dealerliftsinc",
-    icon: IconBrandTiktok,
-    label: "TikTok",
-  },
-];
+/**
+ * Closed days render muted rather than emphasised. Matching on the value keeps
+ * that distinction working however the owner splits or merges the rows.
+ */
+function isClosed(value: string): boolean {
+  return value.trim().toLowerCase() === "closed";
+}
 
-const MAPS_URL =
-  "https://maps.google.com/maps?q=73+Crape+Myrtle+Dr+Benson+NC+27504";
-
-export function Footer() {
+export function Footer({ settings }: { settings: SiteSettings }) {
   return (
     <footer className="bg-[#0a0a0a] text-gray-300">
       {/* CTA strip */}
-      <div className="border-b border-white/10">
+      <div className="border-white/10 border-b">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
           <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#077BFF]">
+              <p className="font-semibold text-[#077BFF] text-xs uppercase tracking-wider">
                 Ready to build?
               </p>
-              <p className="mt-1 font-heading text-2xl font-bold text-white sm:text-3xl">
+              <p className="mt-1 font-bold font-heading text-2xl text-white sm:text-3xl">
                 Let&apos;s spec your next project.
               </p>
             </div>
             <Link
+              className="group inline-flex items-center gap-2 rounded-lg bg-[#077BFF] px-5 py-3 font-semibold text-sm text-white shadow-[#077BFF]/20 shadow-lg transition-all hover:bg-[#0565D4] hover:shadow-[#077BFF]/30"
               href="/contact"
-              className="group inline-flex items-center gap-2 rounded-lg bg-[#077BFF] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#077BFF]/20 transition-all hover:bg-[#0565D4] hover:shadow-[#077BFF]/30"
             >
               Start a quote
               <IconArrowUpRight
-                size={16}
                 className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                size={16}
               />
             </Link>
           </div>
@@ -76,41 +62,47 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-10 md:grid-cols-12 md:gap-8">
           {/* Brand */}
           <div className="col-span-2 md:col-span-4">
-            <Link href="/" className="inline-block">
-              <span className="font-heading text-2xl font-bold tracking-wide text-white">
+            <Link className="inline-block" href="/">
+              <span className="font-bold font-heading text-2xl text-white tracking-wide">
                 DEALER<span className="text-[#077BFF]">LIFTS</span>
               </span>
             </Link>
-            <p className="mt-3 max-w-xs text-sm leading-relaxed text-gray-400">
+            <p className="mt-3 max-w-xs text-gray-400 text-sm leading-relaxed">
               Premium automotive performance and off-road builds in Eastern NC.
             </p>
             <div className="mt-6 flex gap-2">
-              {socials.map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5 text-gray-400 ring-1 ring-inset ring-white/10 transition-all hover:bg-[#077BFF]/10 hover:text-[#077BFF] hover:ring-[#077BFF]/30"
-                  aria-label={s.label}
-                >
-                  <s.icon size={18} />
-                </a>
-              ))}
+              {settings.socials.map((social) => {
+                const Icon = socialIcon(social.platform);
+                if (!Icon) {
+                  return null;
+                }
+                return (
+                  <a
+                    aria-label={social.platform}
+                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5 text-gray-400 ring-1 ring-white/10 ring-inset transition-all hover:bg-[#077BFF]/10 hover:text-[#077BFF] hover:ring-[#077BFF]/30"
+                    href={social.url}
+                    key={social.platform}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    <Icon size={18} />
+                  </a>
+                );
+              })}
             </div>
           </div>
 
           {/* Shop */}
           <div className="md:col-span-2">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#077BFF]">
+            <p className="mb-4 font-semibold text-[#077BFF] text-xs uppercase tracking-wider">
               Shop
             </p>
             <ul className="space-y-2.5">
               {shopLinks.map((link) => (
                 <li key={link.href}>
                   <Link
+                    className="text-gray-400 text-sm transition-colors hover:text-white"
                     href={link.href}
-                    className="text-sm text-gray-400 transition-colors hover:text-white"
                   >
                     {link.label}
                   </Link>
@@ -121,15 +113,15 @@ export function Footer() {
 
           {/* Company */}
           <div className="md:col-span-2">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#077BFF]">
+            <p className="mb-4 font-semibold text-[#077BFF] text-xs uppercase tracking-wider">
               Company
             </p>
             <ul className="space-y-2.5">
               {companyLinks.map((link) => (
                 <li key={link.href}>
                   <Link
+                    className="text-gray-400 text-sm transition-colors hover:text-white"
                     href={link.href}
-                    className="text-sm text-gray-400 transition-colors hover:text-white"
                   >
                     {link.label}
                   </Link>
@@ -140,69 +132,78 @@ export function Footer() {
 
           {/* Visit Us */}
           <div className="col-span-2 md:col-span-4">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#077BFF]">
+            <p className="mb-4 font-semibold text-[#077BFF] text-xs uppercase tracking-wider">
               Visit Us
             </p>
             <ul className="space-y-3 text-sm">
               <li>
                 <a
-                  href={MAPS_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="group inline-flex items-start gap-2.5 text-gray-400 transition-colors hover:text-white"
+                  href={settings.mapsUrl}
+                  rel="noopener noreferrer"
+                  target="_blank"
                 >
                   <IconMapPin
-                    size={16}
                     className="mt-0.5 shrink-0 text-gray-500 transition-colors group-hover:text-[#077BFF]"
+                    size={16}
                   />
                   <span className="inline-flex items-center gap-1">
-                    73 Crape Myrtle Dr, Benson, NC 27504
+                    {`${settings.addressStreet}, ${settings.addressCityStateZip}`}
                     <IconArrowUpRight
-                      size={13}
                       className="opacity-0 transition-opacity group-hover:opacity-100"
+                      size={13}
                     />
                   </span>
                 </a>
               </li>
               <li>
                 <a
-                  href="tel:919-275-8095"
                   className="group inline-flex items-center gap-2.5 text-gray-400 transition-colors hover:text-white"
+                  href={telHref(settings.phone)}
                 >
                   <IconPhone
-                    size={16}
                     className="shrink-0 text-gray-500 transition-colors group-hover:text-[#077BFF]"
+                    size={16}
                   />
-                  (919) 275-8095
+                  {settings.phone}
                 </a>
               </li>
               <li>
                 <a
-                  href="mailto:info@dealerliftsinc.com"
                   className="group inline-flex items-center gap-2.5 text-gray-400 transition-colors hover:text-white"
+                  href={`mailto:${settings.email}`}
                 >
                   <IconMail
-                    size={16}
                     className="shrink-0 text-gray-500 transition-colors group-hover:text-[#077BFF]"
+                    size={16}
                   />
-                  info@dealerliftsinc.com
+                  {settings.email}
                 </a>
               </li>
             </ul>
 
-            <div className="mt-5 rounded-lg bg-white/5 px-4 py-3 ring-1 ring-inset ring-white/10">
-              <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+            <div className="mt-5 rounded-lg bg-white/5 px-4 py-3 ring-1 ring-white/10 ring-inset">
+              <p className="font-semibold text-gray-500 text-xs uppercase tracking-wider">
                 Hours
               </p>
               <ul className="mt-2 space-y-1 text-sm">
-                <li className="flex items-center justify-between gap-4">
-                  <span className="text-gray-400">Mon&ndash;Fri</span>
-                  <span className="font-medium text-white">8am&ndash;5pm</span>
-                </li>
-                <li className="flex items-center justify-between gap-4">
-                  <span className="text-gray-400">Sat &amp; Sun</span>
-                  <span className="text-gray-500">Closed</span>
-                </li>
+                {settings.hours.map((row) => (
+                  <li
+                    className="flex items-center justify-between gap-4"
+                    key={row.label}
+                  >
+                    <span className="text-gray-400">{row.label}</span>
+                    <span
+                      className={
+                        isClosed(row.value)
+                          ? "text-gray-500"
+                          : "font-medium text-white"
+                      }
+                    >
+                      {row.value}
+                    </span>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
@@ -210,19 +211,19 @@ export function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="border-t border-white/10">
+      <div className="border-white/10 border-t">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-6 sm:flex-row sm:px-6 lg:px-8">
-          <p className="text-xs text-gray-500">
+          <p className="text-gray-500 text-xs">
             &copy; {new Date().getFullYear()} Dealer Lifts Inc. All rights
             reserved.
           </p>
-          <p className="text-xs text-gray-500">
+          <p className="text-gray-500 text-xs">
             Site by{" "}
             <a
-              href="https://nineoneninedigital.com"
-              target="_blank"
-              rel="noopener noreferrer"
               className="font-medium text-gray-400 transition-colors hover:text-white"
+              href="https://nineoneninedigital.com"
+              rel="noopener noreferrer"
+              target="_blank"
             >
               NineOneNine Digital
             </a>

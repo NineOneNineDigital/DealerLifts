@@ -1,26 +1,69 @@
-const ENDPOINT = process.env.HYGRAPH_CONTENT_API_URL;
-const READ_TOKEN = process.env.HYGRAPH_CONTENT_API_READ_TOKEN;
+/**
+ * Statuses worth retrying: Hygraph rate limiting, plus transient gateway
+ * errors. Everything else (4xx misconfiguration, auth) fails immediately —
+ * retrying those just delays a certain failure.
+ */
+const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
+
+/** Backoff before each retry, in milliseconds. Length sets the retry count. */
+export const RETRY_DELAYS_MS = [300, 900, 2400];
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * How long to wait before retry `attempt`, honouring a server Retry-After
+ * header when present (seconds form; the HTTP-date form is rare and falls
+ * through to backoff).
+ */
+function retryDelay(res: Response, attempt: number): number {
+  const header = res.headers?.get?.("retry-after");
+  const seconds = header ? Number.parseInt(header, 10) : Number.NaN;
+  return Number.isNaN(seconds) ? RETRY_DELAYS_MS[attempt] : seconds * 1000;
+}
 
 export async function hygraphFetch<T>(
   query: string,
   variables?: Record<string, unknown>,
   options?: { revalidate?: number }
 ): Promise<T> {
+  const ENDPOINT = process.env.HYGRAPH_CONTENT_API_URL;
+  const READ_TOKEN = process.env.HYGRAPH_CONTENT_API_READ_TOKEN;
+
   if (!ENDPOINT) {
     throw new Error(
       "HYGRAPH_CONTENT_API_URL is not set. Add it to .env.local."
     );
   }
 
-  const res = await fetch(ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(READ_TOKEN ? { Authorization: `Bearer ${READ_TOKEN}` } : {}),
-    },
-    body: JSON.stringify({ query, variables }),
-    next: { revalidate: options?.revalidate ?? 60 },
-  });
+  const request = () =>
+    fetch(ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(READ_TOKEN ? { Authorization: `Bearer ${READ_TOKEN}` } : {}),
+      },
+      body: JSON.stringify({ query, variables }),
+      next: { revalidate: options?.revalidate ?? 60 },
+    });
+
+  /*
+   * A cold-cache production build renders every page in parallel workers, so
+   * the first requests burst at Hygraph together and can trip its rate limit.
+   * Without this, a deploy fails on a 429 that would have succeeded a second
+   * later — and under HYGRAPH_STRICT that takes the whole build down.
+   */
+  let res = await request();
+
+  for (
+    let attempt = 0;
+    attempt < RETRY_DELAYS_MS.length && RETRYABLE_STATUSES.has(res.status);
+    attempt++
+  ) {
+    await sleep(retryDelay(res, attempt));
+    res = await request();
+  }
 
   if (!res.ok) {
     throw new Error(`Hygraph request failed: ${res.status} ${res.statusText}`);
@@ -42,6 +85,37 @@ export async function hygraphFetch<T>(
   }
 
   return json.data;
+}
+
+/**
+ * Non-throwing wrapper around {@link hygraphFetch} for page content.
+ *
+ * Page content merges over typed code defaults, so a CMS failure should
+ * degrade rather than 500 — except during CI builds, where shipping defaults
+ * in place of published copy silently reverts the site. `HYGRAPH_STRICT=1`
+ * makes the build fail loudly instead.
+ *
+ * Collection accessors (jobs, team, projects) keep using the throwing
+ * `hygraphFetch`, where an empty list is worse than a visible error.
+ */
+export async function hygraphFetchSafe<T>(
+  query: string,
+  variables?: Record<string, unknown>,
+  options?: { revalidate?: number }
+): Promise<T | null> {
+  try {
+    return await hygraphFetch<T>(query, variables, options);
+  } catch (error) {
+    if (process.env.HYGRAPH_STRICT === "1") {
+      throw error;
+    }
+
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(
+      `[hygraph] content fetch failed, falling back to defaults: ${message}`
+    );
+    return null;
+  }
 }
 
 export interface JobPosition {
@@ -79,12 +153,12 @@ export async function getJobPositions(): Promise<JobPosition[]> {
 }
 
 export interface TeamMember {
+  bio: { html: string; text: string } | null;
   id: string;
+  image: string | null;
   name: string;
   slug: string;
   title: string | null;
-  image: string | null;
-  bio: { html: string; text: string } | null;
 }
 
 const TEAM_MEMBERS_QUERY = /* GraphQL */ `
@@ -111,16 +185,16 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
 }
 
 export interface CompletedProject {
+  featuredProject: boolean | null;
   id: string;
-  name: string;
-  slug: string;
-  year: number | null;
+  images: string[] | null;
+  mainImage: string | null;
   make: string | null;
   model: string | null;
-  mainImage: string | null;
-  images: string[] | null;
-  featuredProject: boolean | null;
+  name: string;
   projectDetails: { html: string; text: string } | null;
+  slug: string;
+  year: number | null;
 }
 
 const COMPLETED_PROJECTS_QUERY = /* GraphQL */ `
