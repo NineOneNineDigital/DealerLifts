@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Oxanium, Barlow, Barlow_Condensed } from "next/font/google";
+import { Barlow, Barlow_Condensed, Oxanium } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/lib/store/cart-context";
 
@@ -78,10 +78,33 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
       className={`${oxanium.variable} ${barlow.variable} ${barlowCondensed.variable}`}
+      lang="en"
     >
-      <body className="font-sans antialiased bg-white text-gray-900">
+      <head>
+        {/* Google Tag Manager */}
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: Google Tag Manager snippet provided for this site
+          dangerouslySetInnerHTML={{
+            __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBRQFZTM');`,
+          }}
+        />
+      </head>
+      <body className="bg-white font-sans text-gray-900 antialiased">
+        {/* Google Tag Manager (noscript) */}
+        <noscript>
+          {/* biome-ignore lint/a11y/useIframeTitle assist/source/useSortedAttributes: preserve supplied Google Tag Manager snippet */}
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-KBRQFZTM"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
         <CartProvider>{children}</CartProvider>
       </body>
     </html>
